@@ -1,0 +1,1 @@
+/usr/bin/ssserver -c ~/ss/ss.json --workers 2 -d start
