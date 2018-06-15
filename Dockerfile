@@ -24,7 +24,7 @@ COPY final.sh ./
 # enable ip_forward
 RUN sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
 # stop iptables
-RUN /sbin/service iptables stop
+# RUN /sbin/service iptables stop
 
 # keep this code for set sysctl.conf for bbr kernel
 # RUN echo 'net.core.default_qdisc = fq' >> /etc/sysctl.conf
