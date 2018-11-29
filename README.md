@@ -1,6 +1,14 @@
 # docker-sshd-shadowsocks
 
-this image is based on centos 6.7 & you need basic docker knowledge. You can get it from Google or [Git-book](https://yeasy.gitbooks.io/docker_practice/) for Chinese Learning. Then DON'T ASK ME! :D
+## Change Log
+
+> 2018-11
+* upgrade to centos 7
+* support aes-*-gcm encryption
+
+## Introducing
+
+this image is based on centos image & you need basic docker knowledge. You can get it from Google or [Git-book](https://yeasy.gitbooks.io/docker_practice/) for Chinese Learning. Then DON'T ASK ME! :D
 
 ## Word first
 
