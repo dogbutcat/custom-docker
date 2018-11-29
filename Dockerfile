@@ -36,4 +36,4 @@ EXPOSE 3389
 EXPOSE 3389/udp
 
 # CMD ["/usr/sbin/sshd", "-D" ]
-CMD ["/bin/sh","./script/final.sh"]
+ENTRYPOINT ["script/final.sh"]

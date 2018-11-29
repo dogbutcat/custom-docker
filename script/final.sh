@@ -1,3 +1,7 @@
+#!/bin/bash
+
+cd $(pwd)
+
 echo 'root:'${ROOT_PW} | chpasswd
 
 echo ${SS_JSON} > ss.json
