@@ -2,9 +2,12 @@
 
 ## Change Log
 
+> 2019-01
+- fix no ssh key to start open-ssh server
+
 > 2018-11
-* upgrade to centos 7
-* support aes-*-gcm encryption
+- upgrade to centos 7
+- support aes-*-gcm encryption
 
 ## Introducing
 
