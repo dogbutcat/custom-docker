@@ -1,10 +1,9 @@
-FROM centos:7
+FROM alpine
 
 # prepare everything
-RUN yum update -y
-RUN yum install -y yum-plugin-ovl vim lsof
-RUN yum install -y openssh-server openssh-clients epel-release
-RUN yum -y install python-pip libsodium
+RUN apk update
+RUN apk add vim lsof
+RUN apk add py-pip libsodium
 # for centos 7 upgrade
 RUN pip install --upgrade pip
 RUN pip install https://github.com/shadowsocks/shadowsocks/archive/master.zip -U
@@ -28,7 +27,7 @@ COPY script script
 # active setting
 # RUN sysctl -p
 
-RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
+# RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN /sbin/service sshd start && /sbin/service sshd stop
 
 EXPOSE 22
