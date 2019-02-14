@@ -2,10 +2,16 @@
 
 ## Change Log
 
+> 2019-02
+
+- deprecate openssh service in alpine branch for significant deployment size and usage memory reduction
+
 > 2019-01
+
 - fix no ssh key to start open-ssh server
 
 > 2018-11
+
 - upgrade to centos 7
 - support aes-*-gcm encryption
 
