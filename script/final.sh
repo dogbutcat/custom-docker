@@ -40,10 +40,4 @@ finish(){
 
 trap finish SIGTERM SIGINT SIGQUIT # action after receive sig
 
-# sleep infinity &
-while read SIGNAL; do
-	case "$SIGNAL" in
-		*EXIT*)break;;
-		*)echo "signal $SIGNAL is unsupported" >/dev/stderr;;
-	esac
-done
+while sleep 3600 & wait $!; do :;done
