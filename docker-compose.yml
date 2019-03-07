@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  v2ray:
+    build: .
+    environment:
+      - CLIENTS=[{"id":"5f44f688-87b5-4f2f-aad8-702f5190497c","level":1,"alterId":20}]
+    # volumes:
+    #   - ./outputs:/opt/v2ray

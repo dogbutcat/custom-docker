@@ -1,38 +1,42 @@
-FROM alpine
+FROM v2ray/official
 
 # prepare everything
 RUN apk update
-RUN apk add vim lsof
-RUN apk add py-pip libsodium
-# for centos 7 upgrade
-RUN pip install --upgrade pip
-RUN pip install https://github.com/shadowsocks/shadowsocks/archive/master.zip -U
-
-ENV ROOT_PW='root'
-ENV WORKER_NUM=2
-ENV SS_JSON='{"server":"0.0.0.0","server_port":3389,"local_port":1080,"password":"0x0x0x0x","timeout":600,"method":"aes-256-gcm"}'
-
-# copy pre-setting to workspace
-WORKDIR /root/ss
-COPY script script
-
-# enable ip_forward
-# RUN sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
-# stop iptables
-# RUN /sbin/service iptables stop
-
-# keep this code for set sysctl.conf for bbr kernel
-# RUN echo 'net.core.default_qdisc = fq' >> /etc/sysctl.conf
-# RUN echo 'net.ipv4.tcp_congestion_control = bbr' >> /etc/sysctl.conf
-# active setting
-# RUN sysctl -p
-
-# RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
-# RUN /sbin/service sshd start && /sbin/service sshd stop
+RUN apk add vim jq
+# RUN apk add py-pip libsodium
+# # for centos 7 upgrade
+# RUN pip install --upgrade pip
+# RUN pip install https://github.com/shadowsocks/shadowsocks/archive/master.zip -U
 
 EXPOSE 22
 EXPOSE 3389
 EXPOSE 3389/udp
+EXPOSE 12345
+EXPOSE 12345/udp
+
+ENV SS='{"protocol":"shadowsocks","port":3389,"settings":{"method":"aes-256-gcm","password":"0x0x0x0x","udp":true}}'
+
+# https://www.v2ray.com/chapter_02/protocols/vmess.html#userobject
+ENV CLIENTS='[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1,"alterId":100}]'
+
+# https://www.v2ray.com/chapter_02/02_protocols.html
+ENV INBOUND='{}'
+ENV INBOUND_DETOUR="[]"
+ENV OUTBOUND='{"protocol":"freedom","settings":{}}'
+ENV OUTBOUND_DETOUR='[{"protocol":"blackhole","settings":{},"tag":"blocked"}]'
+
+# https://www.v2ray.com/chapter_02/03_routing.html
+ENV ROUTING='{"strategy":"rules","settings":{"rules":[{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]}}'
+
+# https://www.v2ray.com/chapter_02/05_transport.html
+ENV TRANSPORT='{}'
+
+# all configuration
+ENV CONFIG='{}'
+
+# copy pre-setting to workspace
+WORKDIR /root/v2ray
+COPY script script
 
 # CMD ["/usr/sbin/sshd", "-D" ]
-ENTRYPOINT ["script/final.sh"]
+ENTRYPOINT ["script/start-v2ray.sh"]
