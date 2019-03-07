@@ -24,7 +24,10 @@ function init_variables {
 }
 
 function output_config {
-	CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbound":'"${INBOUND}"',"outbound":'"${OUTBOUND}"',"inboundDetour":'"${INBOUND_DETOUR}"',"outboundDetour":'"${OUTBOUND_DETOUR}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+	if [ "$CONFIG" = '{}' ];then
+		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbound":'"${INBOUND}"',"outbound":'"${OUTBOUND}"',"inboundDetour":'"${INBOUND_DETOUR}"',"outboundDetour":'"${OUTBOUND_DETOUR}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+	fi
+	
 	if [ -e /opt/v2ray/config.json ];then
 		CONFIG=$(</opt/v2ray/config.json)
 	else
