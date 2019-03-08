@@ -15,25 +15,21 @@ function replace_default_client {
 }
 
 function init_variables {
-	if [ "$INBOUND" = '{}' ];then
-		INBOUND='{"port":12345,"protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}}'
-	fi
-	if [ "$INBOUND_DETOUR" = '[]' ];then
-		INBOUND_DETOUR="[${SS}]"
+	if [ "$INBOUNDS" = '[]' ];then
+		INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
 }
 
 function output_config {
 	if [ "$CONFIG" = '{}' ];then
-		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbound":'"${INBOUND}"',"outbound":'"${OUTBOUND}"',"inboundDetour":'"${INBOUND_DETOUR}"',"outboundDetour":'"${OUTBOUND_DETOUR}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+		if [ -e /opt/v2ray/config.json ];then
+			CONFIG=$(</opt/v2ray/config.json)
+		fi
 	fi
-	
-	if [ -e /opt/v2ray/config.json ];then
-		CONFIG=$(</opt/v2ray/config.json)
-	else
-		mkdir -p /opt/v2ray
-		echo $CONFIG>/opt/v2ray/config.json
-	fi
+
+	mkdir -p /opt/v2ray
+	echo $CONFIG>/opt/v2ray/config.json
 	echo Main Clients:
 	echo ${CLIENTS}|jq .
 	echo -e '\n'

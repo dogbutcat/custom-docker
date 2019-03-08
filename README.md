@@ -2,6 +2,10 @@
 
 ## Change Log
 
+> 2019-03-08
+
+- upgrade config structure to v2ray 4.x
+
 > 2019-03
 
 - migrate to v2ray for integrate shadowsock and v2ray inherit from [v2ray offical image](https://hub.docker.com/r/v2ray/official)
@@ -61,11 +65,15 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
 ### environment description
 
-  support `SS, CLIENTS, INBOUND, INBOUND_DETOUR, OUTBOUND, OUTBOUND_DETOUR, ROUTING, TRANSPORT, CONFIG`, all these above is in JSON format, and override sequence by `CLIENTS`=`SS`<`INBOUND`=`INBOUND_DETOUR`=`OUTBOUND`=`OUTBOUND_DETOUR`=`ROUTING`=`TRANSPORT`<`CONFIG`
+  support `SS`, `VMESS_PORT`,`CLIENTS`, `INBOUNDS`, ~~`INBOUND_DETOUR`~~, `OUTBOUNDS`, ~~`OUTBOUND_DETOUR`~~, `ROUTING`, `TRANSPORT`, `CONFIG`, all these above is in JSON format, and override sequence by `VMESS_PORT`=`CLIENTS`=`SS`<`INBOUNDS`=`OUTBOUNDS`=`ROUTING`=`TRANSPORT`<`CONFIG`
+
+#### **VMESS_PORT**
+
+this is for default vmess port setting, support offical format exclude `env:variable`
 
 #### **SS**
 
-this is special for running shadowsocks in v2ray, work in [INBOUND_DETOUR](#inbound_detour) segment as main entry([INBOUND](#inbound)) is for vmess.
+this is special for running shadowsocks in v2ray, work in [INBOUNDS](#inbounds) segment.
 
 #### **CLIENTS**
 
@@ -73,15 +81,15 @@ this is quick setting for clients part in [INBOUND](#inbound), it will be overri
 
 > the uuid `f2707fb2-70fa-6b38-c9b2-81d6f1efa323` is for default packing option, will be force override by a random uuid generated from kernel, please don't use it for open source safty. Sorry for inconvience.
 
-#### **INBOUND**
+#### **INBOUNDS**
 
 refer to v2ray's inbound segment, offical reference [here](https://www.v2ray.com/chapter_02/02_protocols.html), maybe already blocked by GFW.
 
-#### **INBOUND_DETOUR**
+#### ~~**INBOUND_DETOUR**~~
 
-#### **OUTBOUND**
+#### **OUTBOUNDS**
 
-#### **OUTBOUND_DETOUR**
+#### ~~**OUTBOUND_DETOUR**~~
 
 #### **ROUTING**
 
@@ -91,7 +99,7 @@ all these refer above
 
 #### **CONFIG**
 
-this is for the hole v2ray json config, you can place your setting here, or bind the container path `/opt/v2ray/` to your local one with `config.json` in it.
+this is for the hole v2ray json config, you can place your setting here, or bind the container path `/opt/v2ray/` to your local one with `config.json` in it which support format is v2ray 3.x or 4.x
 
 > ⚠️Better expirence with Compose or Stack.
 
