@@ -1,54 +1,31 @@
-# docker-sshd-shadowsocks
+# docker-udpspeeder
 
 ## Change Log
 
-> 2019-02
+> 2019-03
 
-- deprecate openssh service in alpine branch for significant deployment size and usage memory reduction
-
-> 2019-01
-
-- fix no ssh key to start open-ssh server
-
-> 2018-11
-
-- upgrade to centos 7
-- support aes-*-gcm encryption
+- update udpspeeder
 
 ## Introducing
 
-this image is based on centos image & you need basic docker knowledge. You can get it from Google or [Git-book](https://yeasy.gitbooks.io/docker_practice/) for Chinese Learning. Then DON'T ASK ME! :D
+this image is based on alpine image & you need basic docker knowledge. You can get it from Google or [Git-book](https://yeasy.gitbooks.io/docker_practice/) for Chinese Learning. Then DON'T ASK ME! :D
 
 ## Word first
 
-this docker image is for **MY-SELF** usage for quick deploy, no special support, for some reason, I use config file instead of cli named ss.json through, so I referred this [Dockerize an SSH service](https://docs.docker.com/engine/examples/running_ssh_service/#build-an-eg_sshd-image), using python version shadowsocks from pip install which also support udp transfer. You can also login in the container change sysctl.conf with root:root, if your host support BBR algorithm contribute by Google.
+this is for udpspeeder usage. Build-in version is [Here](https://github.com/wangyu-/UDPspeeder/releases/20180806.0)
 
 ## How To Use It
 
-* standard start
+> please replace command option with default entry point `speederv2_amd64` like what you need to add to end `docker run` as below
 
-        docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-            -d dogbutcat/docker-sshd-shadowsocks
+```sh
+docker run -p 1234:1234/udp -p 5678:5678/udp dogbutcat/1.0-speederv2 \
+          -s -l127.0.0.1:1234 -r127.0.0.1:5678 -f1:2 -k "passwds" --mode 0
+```
 
-* set up with environments
+you can also replace the entry point with `speederv2_x86`, `speederv2_arm`, `speederv2_mips24kc_be`, `speederv2_mips24kc_le` (reference [here](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime))
 
-  current support ```ROOT_PW, SS_JSON, WORKER_NUM```
-
-  1. custom root password (default root password is ```root```)
-
-            docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-                --env ROOT_PW=1233
-                -d dogbutcat/docker-sshd-shadowsocks
-
-  1. custom $$ config json (**REMENBER to open port transfer with custom port**)
-
-            docker run -p 22:22 -p 5666:5666 -p 5666:5666/udp
-                --env SS_JSON='{"server":"0.0.0.0","server_port":5666,"local_port":1080,
-                                "password":"0x0x0x0x","timeout":600,"method":"aes-256-cfb"}'
-                -d dogbutcat/docker-sshd-shadowsocks
-
-  1. custom $$ worker
-
-            docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-                --env WORKER_NUM=0
-                -d dogbutcat/docker-sshd-shadowsocks
+```sh
+docker run --entrypoint="speederv2_x86" -p 1234:1234/udp -p 5678:5678/udp dogbutcat/1.0-speederv2 \
+          -s -l127.0.0.1:1234 -r127.0.0.1:5678 -f1:2 -k "passwds" --mode 0
+```
