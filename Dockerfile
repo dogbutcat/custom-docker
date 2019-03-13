@@ -2,25 +2,21 @@ FROM alpine
 
 # prepare everything
 RUN apk update
-RUN apk add vim lsof
-RUN apk add py-pip libsodium
-# for centos 7 upgrade
-RUN pip install --upgrade pip
-RUN pip install https://github.com/shadowsocks/shadowsocks/archive/master.zip -U
+RUN apk add vim lsof tar
+# RUN apk add py-pip libsodium
+WORKDIR /opt/udp2raw
+ENV PATH="/opt/udp2raw:${PATH}"
 
-ENV ROOT_PW='root'
-ENV WORKER_NUM=2
-ENV SS_JSON='{"server":"0.0.0.0","server_port":3389,"local_port":1080,"password":"0x0x0x0x","timeout":600,"method":"aes-256-gcm"}'
+# UDP2raw 20181113.0
+RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20181113.0/udp2raw_binaries.tar.gz &&\
+	tar xzvf udp2raw_binaries.tar.gz
 
 # copy pre-setting to workspace
-WORKDIR /root/ss
-COPY script script
+# COPY script script
 
+# next need to excute in host
 # enable ip_forward
 # RUN sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
-# stop iptables
-# RUN /sbin/service iptables stop
-
 # keep this code for set sysctl.conf for bbr kernel
 # RUN echo 'net.core.default_qdisc = fq' >> /etc/sysctl.conf
 # RUN echo 'net.ipv4.tcp_congestion_control = bbr' >> /etc/sysctl.conf
@@ -30,9 +26,7 @@ COPY script script
 # RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN /sbin/service sshd start && /sbin/service sshd stop
 
-EXPOSE 22
-EXPOSE 3389
-EXPOSE 3389/udp
-
 # CMD ["/usr/sbin/sshd", "-D" ]
-ENTRYPOINT ["script/final.sh"]
+# find options here https://github.com/wangyu-/udp2raw-tunnel/blob/master/doc/README.zh-cn.md#%E5%91%BD%E4%BB%A4%E9%80%89%E9%A1%B9
+ENTRYPOINT ["udp2raw_amd64"]
+CMD ["-s", "-l","0.0.0.0:1234", "-r", "127.0.0.1:5678", "--raw-mode", "faketcp", "-k", "passwd"]
