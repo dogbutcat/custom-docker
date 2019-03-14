@@ -2,7 +2,7 @@ FROM alpine
 
 # prepare everything
 RUN apk update
-RUN apk add vim lsof tar
+RUN apk add vim lsof tar bind-tools
 # RUN apk add py-pip libsodium
 WORKDIR /opt/udp2raw
 ENV PATH="/opt/udp2raw:${PATH}"
