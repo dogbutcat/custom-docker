@@ -40,7 +40,7 @@ docker run --entrypoint="udp2raw_x86" -p 1234:1234 -p 5678:5678/udp dogbutcat/1.
           -s -l 0.0.0.0:1234 -r 127.0.0.1:5678 -k "passwds" --raw-mode faketcp -g
 ```
 
-### Causion
+### Caveats
 
 please remember drop tcp package on listen port as it only accept udp to transfer to faketcp, you can get specific iptable rule with `-g` option throught command
 
