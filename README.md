@@ -49,4 +49,4 @@ docker run --entrypoint="udp2raw_x86" -p 1234:1234 -p 5678:5678/udp dogbutcat/1.
           -s -l 0.0.0.0:1234 -r 127.0.0.1:5678 -k "passwds" --raw-mode faketcp -g
 ```
 
-because udp2raw running on level 2, if not work correct, maybe need add `--net=host`/`--cap-add=NET_ADMIN` or `network_mode:"host"`/`cap_add: NET_ADMIN` in compose
+because udp2raw running on level 2, if not work correct, ~~maybe~~ MUST need add `--net=host`/`--cap-add=NET_ADMIN` or `network_mode:"host"`/`cap_add: NET_ADMIN` in compose
