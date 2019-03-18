@@ -28,8 +28,8 @@ function output_config {
 		fi
 	fi
 
-	mkdir -p /opt/v2ray
-	echo $CONFIG>/opt/v2ray/config.json
+	mkdir -p /tmp
+	echo $CONFIG>/tmp/config.json
 	echo Main Clients:
 	echo ${CLIENTS}|jq .
 	echo -e '\n'
@@ -38,11 +38,11 @@ function output_config {
 }
 
 function start_v2ray {
-	v2ray --config=/opt/v2ray/config.json &
+	v2ray --config=/tmp/config.json &
 }
 
-CLIENTS=$(replace_default_client $CLIENTS)
 init_variables
+CLIENTS=$(replace_default_client $CLIENTS)
 output_config
 start_v2ray
 
