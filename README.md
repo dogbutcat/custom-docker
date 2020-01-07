@@ -1,6 +1,17 @@
 # docker-sshd-shadowsocks
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/dogbutcat/docker-sshd-shadowsocks.svg)][dockerhub]
+
+## V2ray version in release tag
+
+- 4.1.0-v2ray V2Ray 4.22.1 (V2Fly, a community-driven edition of V2Ray.)
+- 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
+
 ## Change Log
+
+> 2020-01
+
+- integrate v2ray offical build script to upgrade v2ray
 
 > 2019-03-08
 
