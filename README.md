@@ -1,6 +1,6 @@
 # docker-sshd-shadowsocks
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/dogbutcat/docker-sshd-shadowsocks.svg)][dockerhub]
+![Docker Pulls](https://img.shields.io/docker/pulls/dogbutcat/docker-sshd-shadowsocks)
 
 ## V2ray version in release tag
 
