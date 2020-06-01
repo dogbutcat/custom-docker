@@ -18,11 +18,14 @@ function init_variables {
 	if [ "$INBOUNDS" = '[]' ];then
 		INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
+	if [ "$DNS" = '{}' ];then
+		DNS='{"network":"tcp","address":"1.1.1.1","port":53}'
+	fi
 }
 
 function output_config {
 	if [ "$CONFIG" = '{}' ];then
-		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
 		if [ -e /opt/v2ray/config.json ];then
 			CONFIG=$(</opt/v2ray/config.json)
 		fi
