@@ -4,10 +4,15 @@
 
 ## V2ray version in release tag
 
+- 4.2.0-v2ray V2Ray 4.23.2 (V2Fly, a community-driven edition of V2Ray.)
 - 4.1.0-v2ray V2Ray 4.22.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
 
 ## Change Log
+
+> 2020-06
+
+- v2ray default tls handshake, relative discussion [HERE][tls-discussion]
 
 > 2020-01
 
@@ -114,9 +119,26 @@ this is for the hole v2ray json config, you can place your setting here, or bind
 
 > ⚠️Better expirence with Compose or Stack.
 
+```yaml
+version: '2'
+
+services:
+
+  v2ray:
+    image: dogbutcat/docker-sshd-shadowsocks
+    environment:
+      - INBOUNDS=[{"port":"1800", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1,"alterId":100, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}]
+      #- CONFIG={"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1,"alterId":100, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}],"outbounds":[{"protocol":"freedom","settings":{}},{"protocol":"blackhole","settings":{},"tag":"blocked"}],"routing":{"strategy":"rules","settings":{"rules":[{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]}},"transport":{},"dns":{"network":"tcp","address":"1.1.1.1","port":53}}
+    ports:
+      - "1800:1800"
+      - "3389:3389"
+```
+
 ## Problems may happen
 
 - can't connect
   - check firewall on server
   - check uuid or alterId is same on server and client
   - check docker log for v2ray start normally
+
+[tls-discussion]: https://github.com/v2ray/discussion/issues/704
