@@ -8,12 +8,12 @@ RUN apk add vim lsof tar
 WORKDIR /opt/speederv2
 ENV PATH="/opt/speederv2:${PATH}"
 
-# UDPspeeder 20180806.0
-RUN wget https://github.com/wangyu-/UDPspeeder/releases/download/20180806.0/speederv2_linux.tar.gz &&\
+# UDPspeeder 20190121.0
+RUN wget -O speederv2_linux.tar.gz https://github.com/wangyu-/UDPspeeder/releases/download/20190121.0/speederv2_binaries.tar.gz &&\
 	tar xzvf speederv2_linux.tar.gz
 
 # copy pre-setting to workspace
-# COPY script script
+COPY script script
 
 # next need to excute in host
 # enable ip_forward
@@ -27,7 +27,10 @@ RUN wget https://github.com/wangyu-/UDPspeeder/releases/download/20180806.0/spee
 # RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN /sbin/service sshd start && /sbin/service sshd stop
 
+ENV R_PORT="5678"
+
 # CMD ["/usr/sbin/sshd", "-D" ]
 # find options here https://github.com/wangyu-/UDPspeeder#full-options
-ENTRYPOINT ["speederv2_amd64"]
-CMD ["-s", "-l","0.0.0.0:4096", "-r", "127.0.0.1:7777", "-f","20:10", "-k", "passwd"]
+# ENTRYPOINT ["speederv2_amd64"]
+ENTRYPOINT [ "./script/start.sh" ]
+CMD ["speederv2_amd64", "-s", "-l","0.0.0.0:4096", "-f","20:10", "-k", "passwd"]]

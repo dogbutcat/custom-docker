@@ -2,6 +2,11 @@
 
 ## Change Log
 
+> 2020-06
+
+- update udpspeeder to 20190121.0
+- update script
+
 > 2019-03
 
 - update udpspeeder
@@ -23,10 +28,10 @@ docker run -p 1234:1234/udp -p 5678:5678/udp dogbutcat/1.0-speederv2 \
           -s -l127.0.0.1:1234 -r127.0.0.1:5678 -f1:2 -k "passwds" --mode 0
 ```
 
-you can also replace the entry point with `speederv2_x86`, `speederv2_arm`, `speederv2_mips24kc_be`, `speederv2_mips24kc_le` (reference [here](https://docs.docker.com/engine/reference/run/#entrypoint-default-command-to-execute-at-runtime))
+you can also replace the binary with append `speederv2_x86`, `speederv2_arm`, `speederv2_mips24kc_be`, `speederv2_mips24kc_le` to command
 
 ```sh
-docker run --entrypoint="speederv2_x86" -p 1234:1234/udp -p 5678:5678/udp dogbutcat/1.0-speederv2 \
+docker run -p 1234:1234/udp -p 5678:5678/udp dogbutcat/1.0-speederv2 speederv2_x86 \
           -s -l127.0.0.1:1234 -r127.0.0.1:5678 -f1:2 -k "passwds" --mode 0
 ```
 
