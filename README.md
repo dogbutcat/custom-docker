@@ -36,7 +36,7 @@ you can also replace the entry point with (reference [here](https://docs.docker.
 - `udp2raw_mips24kc_le_asm_aes`
 
 ```sh
-docker run --entrypoint="udp2raw_x86" -p 1234:1234 -p 5678:5678/udp dogbutcat/1.0-udp2raw \
+docker run -p 1234:1234 -p 5678:5678/udp dogbutcat/1.0-udp2raw udp2raw_x86 \
           -s -l 0.0.0.0:1234 -r 127.0.0.1:5678 -k "passwds" --raw-mode faketcp -g
 ```
 
@@ -45,7 +45,7 @@ docker run --entrypoint="udp2raw_x86" -p 1234:1234 -p 5678:5678/udp dogbutcat/1.
 please remember drop tcp package on listen port as it only accept udp to transfer to faketcp, you can get specific iptable rule with `-g` option throught command
 
 ```sh
-docker run --entrypoint="udp2raw_x86" -p 1234:1234 -p 5678:5678/udp dogbutcat/1.0-udp2raw \
+docker run -p 1234:1234 -p 5678:5678/udp dogbutcat/1.0-udp2raw udp2raw_x86 \
           -s -l 0.0.0.0:1234 -r 127.0.0.1:5678 -k "passwds" --raw-mode faketcp -g
 ```
 

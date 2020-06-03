@@ -12,7 +12,7 @@ RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20181113.0/
 	tar xzvf udp2raw_binaries.tar.gz
 
 # copy pre-setting to workspace
-# COPY script script
+COPY script script
 
 # next need to excute in host
 # enable ip_forward
@@ -26,7 +26,10 @@ RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20181113.0/
 # RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN /sbin/service sshd start && /sbin/service sshd stop
 
+ENV R_PORT="5678"
+
 # CMD ["/usr/sbin/sshd", "-D" ]
 # find options here https://github.com/wangyu-/udp2raw-tunnel/blob/master/doc/README.zh-cn.md#%E5%91%BD%E4%BB%A4%E9%80%89%E9%A1%B9
-ENTRYPOINT ["udp2raw_amd64"]
-CMD ["-s", "-l","0.0.0.0:1234", "-r", "127.0.0.1:5678", "--raw-mode", "faketcp", "-k", "passwd"]
+# ENTRYPOINT ["udp2raw_amd64"]
+ENTRYPOINT [ "./script/start.sh" ]
+CMD ["udp2raw_amd64", "-s", "-l","0.0.0.0:1234", "--raw-mode", "faketcp", "-k", "passwd"]

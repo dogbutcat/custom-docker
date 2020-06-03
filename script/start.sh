@@ -1,1 +1,24 @@
-/usr/bin/ssserver -c ~/ss/ss.json --workers 2 -d start
+#!/bin/sh
+
+ip=$(wget -qO- -t1 -T2 ip.sb)
+
+args="-r $ip:$R_PORT"
+bin="$1"
+extArgs="${@:2}"
+
+echo $extArgs
+
+if [ -z "${extArgs##*' -r'*}" ]; then
+    echo "use R_PORT instead of -r"
+    exit 1
+fi
+
+$bin $extArgs $args 2>&1 &
+
+finish(){
+    exit 0
+}
+
+trap finish SIGTERM SIGINT SIGQUIT # action after receive sig
+
+while sleep 3600 & wait $!;do :;done;
