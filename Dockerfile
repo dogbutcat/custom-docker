@@ -2,7 +2,7 @@ FROM ubuntu:latest as builder
 
 RUN apt-get update
 RUN apt-get install curl -y
-RUN curl -L -o /tmp/go.sh https://install.direct/go.sh?date=20200601
+RUN curl -L -o /tmp/go.sh https://install.direct/go.sh?date=20200605
 RUN chmod +x /tmp/go.sh
 RUN /tmp/go.sh
 
