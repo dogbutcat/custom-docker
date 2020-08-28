@@ -1,10 +1,12 @@
 FROM ubuntu:latest as builder
 
+WORKDIR /opt/build
+ADD ./script/install .
+
 RUN apt-get update
 RUN apt-get install curl -y
-RUN curl -L -o /tmp/go.sh https://install.direct/go.sh?date=20200605
-RUN chmod +x /tmp/go.sh
-RUN /tmp/go.sh
+RUN bash ./install-geoip.sh
+RUN bash ./install-v2ray.sh
 
 FROM alpine:latest
 
@@ -61,7 +63,7 @@ ENV CONFIG='{}'
 
 # copy pre-setting to workspace
 WORKDIR /root/v2ray
-COPY script script
+COPY script/runtime script
 
 # CMD ["/usr/sbin/sshd", "-D" ]
 ENTRYPOINT ["script/start-v2ray.sh"]
