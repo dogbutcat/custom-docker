@@ -19,6 +19,7 @@ DOWNLOAD_LINK_GEOIP="https://github.com/v2ray/geoip/releases/latest/download/geo
 DOWNLOAD_LINK_GEOSITE="https://github.com/v2ray/domain-list-community/releases/latest/download/dlc.dat"
 
 download_geoip() {
+    echo "Starting Download GEOIP: ${DOWNLOAD_LINK_GEOIP}"
     if ! curl -L -H 'Cache-Control: no-cache' -o "${V2RAY}geoip.dat.new" "$DOWNLOAD_LINK_GEOIP"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
@@ -36,6 +37,7 @@ download_geoip() {
 }
 
 download_geosite() {
+    echo "Starting Download GEOSITE: ${DOWNLOAD_LINK_GEOSITE}"
     if ! curl -L -H 'Cache-Control: no-cache' -o "${V2RAY}geosite.dat.new" "$DOWNLOAD_LINK_GEOSITE"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1

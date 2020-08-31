@@ -4,12 +4,17 @@
 
 ## V2ray version in release tag
 
+- 4.3.0-v2ray V2Ray 4.27.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.1-v2ray V2Ray 4.23.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.0-v2ray V2Ray 4.23.2 (V2Fly, a community-driven edition of V2Ray.)
 - 4.1.0-v2ray V2Ray 4.22.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
 
 ## Change Log
+
+> 2020-08
+
+- upgrade v2ray install script and bump binary to 4.27.4 for [VLESS][vless] support
 
 > 2020-06
 
@@ -143,3 +148,4 @@ services:
   - check docker log for v2ray start normally
 
 [tls-discussion]: https://github.com/v2ray/discussion/issues/704
+[vless]: https://www.v2fly.org/config/protocols/vless.html#vless

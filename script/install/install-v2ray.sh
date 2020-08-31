@@ -2,7 +2,8 @@
 MACHINE='64'
 DAT_PATH='/usr/bin/v2ray/'
 # Two very important variables
-TMP_DIRECTORY="$(mktemp -du)/"
+# TMP_DIRECTORY="$(mktemp -du)/"
+TMP_DIRECTORY=${DAT_PATH}
 ZIP_FILE="${TMP_DIRECTORY}v2ray-linux-$MACHINE.zip"
 
 version_number() {
@@ -21,7 +22,7 @@ get_version() {
     TMP_FILE="$(mktemp)"
     install_software curl
     # DO NOT QUOTE THESE `${PROXY}` VARIABLES!
-    if ! curl ${PROXY} -o "$TMP_FILE" 'https://api.github.com/repos/v2fly/v2ray-core/releases/latest'; then
+    if ! curl -o "$TMP_FILE" 'https://api.github.com/repos/v2fly/v2ray-core/releases/latest'; then
         rm "$TMP_FILE"
         echo 'error: Failed to get release list, please check your network.'
         exit 1
@@ -32,6 +33,7 @@ get_version() {
 }
 
 decompression() {
+    echo "Starting unzip file"
     if ! unzip -q "$1" -d "$TMP_DIRECTORY"; then
         echo 'error: V2Ray decompression failed.'
         rm -r "$TMP_DIRECTORY"
@@ -73,22 +75,27 @@ download_v2ray() {
 install_file() {
     NAME="$1"
     if [[ "$NAME" == 'v2ray' ]] || [[ "$NAME" == 'v2ctl' ]]; then
-        cp -m 755 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
+        install -m 755 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
     elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        cp -m 644 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
+        install -m 644 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
     fi
 }
 
 install_v2ray() {
+    # get version
+    get_version
+    # Download V2Ray binary
+    download_v2ray
+    decompression "$ZIP_FILE"
     # Install V2Ray binary to /usr/local/bin/ and $DAT_PATH
-    install_file v2ray
-    install_file v2ctl
-    install -d "$DAT_PATH"
+    # install_file v2ray
+    # install_file v2ctl
+    # install -d "$DAT_PATH"
     # If the file exists, geoip.dat and geosite.dat will not be installed or updated
-    if [[ ! -f "${DAT_PATH}.undat" ]]; then
-        install_file geoip.dat
-        install_file geosite.dat
-    fi
+    # if [[ ! -f "${DAT_PATH}.undat" ]]; then
+    #     install_file geoip.dat
+    #     install_file geosite.dat
+    # fi
 }
 
 main(){

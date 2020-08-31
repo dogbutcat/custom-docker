@@ -1,12 +1,12 @@
 FROM ubuntu:latest as builder
 
-WORKDIR /opt/build
+WORKDIR /usr/bin/v2ray/
 ADD ./script/install .
 
 RUN apt-get update
-RUN apt-get install curl -y
-RUN bash ./install-geoip.sh
+RUN apt-get install -y curl unzip
 RUN bash ./install-v2ray.sh
+RUN bash ./install-geoip.sh
 
 FROM alpine:latest
 
