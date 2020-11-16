@@ -4,6 +4,7 @@
 
 ## V2ray version in release tag
 
+- 4.4.0-v2ray V2Ray 4.32.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.3.0-v2ray V2Ray 4.27.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.1-v2ray V2Ray 4.23.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.0-v2ray V2Ray 4.23.2 (V2Fly, a community-driven edition of V2Ray.)

@@ -5,6 +5,10 @@ ADD ./script/install .
 
 RUN apt-get update
 RUN apt-get install -y curl unzip
+
+ENV VRAY_BINARY 4.32.1
+ENV VERSION 4.4.0
+
 RUN bash ./install-v2ray.sh
 RUN bash ./install-geoip.sh
 
