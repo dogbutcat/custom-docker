@@ -16,7 +16,8 @@ function replace_default_client {
 
 function init_variables {
 	if [ "$INBOUNDS" = '[]' ];then
-		INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
+		# INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
+		INBOUNDS='[{"port":"env:VLESS_PORT", "listen":"0.0.0.0", "protocol":"vless","settings":{"clients":'${CLIENTS}'},"decryption": "none","streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
 	if [ "$DNS" = '{}' ];then
 		DNS='{"network":"tcp","address":"1.1.1.1","port":53}'
@@ -25,7 +26,7 @@ function init_variables {
 
 function output_config {
 	if [ "$CONFIG" = '{}' ];then
-		CONFIG='{"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
+		CONFIG='{"stats":{},"log":{"loglevel":"debug"},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
 		if [ -e /opt/v2ray/config.json ];then
 			CONFIG=$(</opt/v2ray/config.json)
 		fi
