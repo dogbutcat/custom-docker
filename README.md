@@ -2,8 +2,9 @@
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/dogbutcat/docker-sshd-shadowsocks)
 
-## V2ray version in release tag
+## V2ray/Xray version in release tag
 
+- 5.0.0-xray Xray 1.4.0 (Xray, Penetrates Everything.) Custom (go1.16.2 linux/amd64)
 - 4.4.0-v2ray V2Ray 4.32.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.3.0-v2ray V2Ray 4.27.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.1-v2ray V2Ray 4.23.4 (V2Fly, a community-driven edition of V2Ray.)
@@ -12,6 +13,12 @@
 - 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
 
 ## Change Log
+
+> 2021-03
+
+- migrate from v2ray to xray super type of v2ray/v2fly
+- better support vless+xtls, from test stage, speedtest upgrade up to 3x of my vmess+ws
+- mac client recommand [Qv2ray][qv2ray]
 
 > 2020-08
 
@@ -148,5 +155,6 @@ services:
   - check uuid or alterId is same on server and client
   - check docker log for v2ray start normally
 
+[qv2ray]: https://github.com/Qv2ray/Qv2ray
 [tls-discussion]: https://github.com/v2ray/discussion/issues/704
 [vless]: https://www.v2fly.org/config/protocols/vless.html#vless
