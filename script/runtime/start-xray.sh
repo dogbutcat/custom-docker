@@ -26,7 +26,7 @@ function init_variables {
 
 function output_config {
 	if [ "$CONFIG" = '{}' ];then
-		CONFIG='{"stats":{},"log":{"loglevel":"debug"},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
+		CONFIG='{"stats":{},"log":{"loglevel":'"${LOGLEVEL}"'},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
 		if [ -e /opt/xray/config.json ];then
 			CONFIG=$(</opt/xray/config.json)
 		fi

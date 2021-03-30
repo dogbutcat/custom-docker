@@ -61,6 +61,8 @@ ENV DNS='{}'
 # all configuration
 ENV CONFIG='{}'
 
+ENV LOGLEVEL='warning'
+
 # copy pre-setting to workspace
 WORKDIR /root/xray
 COPY script/runtime script
