@@ -19,16 +19,18 @@ function init_variables {
 		# INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
 		INBOUNDS='[{"port":"env:VLESS_PORT", "listen":"0.0.0.0", "protocol":"vless","settings":{"clients":'${CLIENTS}'},"decryption": "none","streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
-	if [ "$DNS" = '{}' ];then
-		DNS='{"servers": ["localhost"]}'
-	fi
 }
 
 function output_config {
 	if [ "$CONFIG" = '{}' ];then
-		CONFIG='{"stats":{},"log":{"loglevel":'"${LOGLEVEL}"'},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
+		if [ "$DNS" = '{}' ];then
+			CONFIG='{"stats":{},"log":{"loglevel":'"${LOGLEVEL}"'},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"'}'
+		else
+			CONFIG='{"stats":{},"log":{"loglevel":'"${LOGLEVEL}"'},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}},"inbounds":'"${INBOUNDS}"',"outbounds":'"${OUTBOUNDS}"',"routing":'"${ROUTING}"',"transport":'"${TRANSPORT}"',"dns":'"${DNS}"'}'
+		fi
+
 		if [ -e /opt/xray/config.json ];then
-			CONFIG=$(</opt/xray/config.json)
+			CONFIG=$(cat /opt/xray/config.json)
 		fi
 	fi
 
