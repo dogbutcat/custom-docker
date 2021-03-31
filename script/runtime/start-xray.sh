@@ -20,7 +20,7 @@ function init_variables {
 		INBOUNDS='[{"port":"env:VLESS_PORT", "listen":"0.0.0.0", "protocol":"vless","settings":{"clients":'${CLIENTS}'},"decryption": "none","streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
 	if [ "$DNS" = '{}' ];then
-		DNS='{"network":"tcp","address":"1.1.1.1","port":53}'
+		DNS='{"servers": ["localhost"]}'
 	fi
 }
 
