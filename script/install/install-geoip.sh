@@ -15,8 +15,10 @@
 
 # You can modify it to /usr/local/lib/xray/
 XRAY="/usr/bin/xray/"
-DOWNLOAD_LINK_GEOIP="https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
-DOWNLOAD_LINK_GEOSITE="https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
+# DOWNLOAD_LINK_GEOIP="https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
+# DOWNLOAD_LINK_GEOSITE="https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
+DOWNLOAD_LINK_GEOIP="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
+DOWNLOAD_LINK_GEOSITE="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
 
 download_geoip() {
     echo "Starting Download GEOIP: ${DOWNLOAD_LINK_GEOIP}"
