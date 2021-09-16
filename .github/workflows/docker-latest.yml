@@ -3,7 +3,7 @@ name: Docker Latest
 on:
   push:
     branches:
-    - 'master'
+    - 'xray'
 
 jobs:
 
