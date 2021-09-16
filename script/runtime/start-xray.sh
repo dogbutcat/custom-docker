@@ -17,7 +17,7 @@ function replace_default_client {
 function init_variables {
 	if [ "$INBOUNDS" = '[]' ];then
 		# INBOUNDS='[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":'${CLIENTS}'},"streamSettings":{"network":"tcp"}},'${SS}']'
-		INBOUNDS='[{"port":"env:VLESS_PORT", "listen":"0.0.0.0", "protocol":"vless","settings":{"clients":'${CLIENTS}'},"decryption": "none","streamSettings":{"network":"tcp"}},'${SS}']'
+		INBOUNDS='[{"port":"env:VLESS_PORT", "listen":"0.0.0.0", "protocol":"vless","settings":{"clients":'${CLIENTS}',"decryption": "none"},"streamSettings":{"network":"tcp"}},'${SS}']'
 	fi
 }
 
