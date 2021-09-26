@@ -6,8 +6,8 @@ ADD ./script/install .
 RUN apt-get update
 RUN apt-get install -y curl unzip
 
-ENV XRAY_BINARY 1.4.3
-ENV VERSION 5.2.0
+ENV XRAY_BINARY v1.4.5
+ENV VERSION 5.2.1
 
 RUN bash ./install-xray.sh
 RUN bash ./install-geoip.sh

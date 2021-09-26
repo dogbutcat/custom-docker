@@ -18,7 +18,7 @@ version_number() {
 }
 
 get_version() {
-     # Get xray release version number
+     # Get xray release XRAY_BINARY number
     TMP_FILE="$(mktemp)"
     install_software curl
     # DO NOT QUOTE THESE `${PROXY}` VARIABLES!
@@ -29,7 +29,7 @@ get_version() {
     fi
     RELEASE_LATEST="$(sed 'y/,/\n/' "$TMP_FILE" | grep 'tag_name' | awk -F '"' '{print $4}')"
     rm "$TMP_FILE"
-    RELEASE_VERSION="$(version_number "$RELEASE_LATEST")"
+    XRAY_BINARY="$(version_number "$RELEASE_LATEST")"
 }
 
 decompression() {
@@ -45,7 +45,7 @@ decompression() {
 
 download_xray() {
     mkdir "$TMP_DIRECTORY"
-    DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$RELEASE_VERSION/Xray-linux-$MACHINE.zip"
+    DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$XRAY_BINARY/Xray-linux-$MACHINE.zip"
     echo "Downloading xray archive: $DOWNLOAD_LINK"
     if ! curl -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
         echo 'error: Download failed! Please check your network or try again.'
@@ -57,7 +57,7 @@ download_xray() {
         return 1
     fi
     if [[ "$(cat "$ZIP_FILE".dgst)" == 'Not Found' ]]; then
-        echo 'error: This version does not support verification. Please replace with another version.'
+        echo "error: This XRAY_BINARY ${XRAY_BINARY} does not support verification. Please replace with another XRAY_BINARY."
         return 1
     fi
 
@@ -82,8 +82,8 @@ install_file() {
 }
 
 install_xray() {
-    # get version
-    get_version
+    # get XRAY_BINARY without XRAY_BINARY
+    [ -z "${XRAY_BINARY}" ] && get_version
     # Download xray binary
     download_xray
     decompression "$ZIP_FILE"
