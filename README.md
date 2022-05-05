@@ -4,6 +4,8 @@
 
 ## V2ray/Xray version in release tag
 
+- 5.5.0-xray Xray 1.5.5 (Xray, Penetrates Everything.) Custom (go1.18.1 linux/amd64)
+- 5.4.0-xray Xray 1.5.3 (Xray, Penetrates Everything.) Custom (go1.17.6 linux/amd64)
 - 5.3.0-xray Xray 1.5.2 (Xray, Penetrates Everything.) Custom (go1.17.5 linux/amd64)
 - 5.2.1-xray Xray 1.4.5 (Xray, Penetrates Everything.) Custom (go1.17.1 linux/amd64)
 - 5.2.0-xray Xray 1.4.3 (Xray, Penetrates Everything.) 7246001 (go1.17.1 linux/amd64)
@@ -17,6 +19,10 @@
 - 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
 
 ## Change Log
+
+> 2022-02
+
+- xray bump to 1.5.3
 
 > 2022-01
 
