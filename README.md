@@ -20,6 +20,10 @@
 
 ## Change Log
 
+> 2022-05
+
+- xray bumpt to 1.5.5
+
 > 2022-02
 
 - xray bump to 1.5.3
