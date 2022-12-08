@@ -4,6 +4,7 @@
 
 ## V2ray/Xray version in release tag
 
+- 5.6.0-xray Xray 1.6.1 (Xray, Penetrates Everything.) Custom (go1.19.2 linux/amd64)
 - 5.5.0-xray Xray 1.5.5 (Xray, Penetrates Everything.) Custom (go1.18.1 linux/amd64)
 - 5.4.0-xray Xray 1.5.3 (Xray, Penetrates Everything.) Custom (go1.17.6 linux/amd64)
 - 5.3.0-xray Xray 1.5.2 (Xray, Penetrates Everything.) Custom (go1.17.5 linux/amd64)
@@ -11,6 +12,10 @@
 - 5.2.0-xray Xray 1.4.3 (Xray, Penetrates Everything.) 7246001 (go1.17.1 linux/amd64)
 - 5.1.0-xray Xray 1.4.2 (Xray, Penetrates Everything.) Custom (go1.16.2 linux/amd64)
 - 5.0.0-xray - 5.0.2-xray Xray 1.4.0 (Xray, Penetrates Everything.) Custom (go1.16.2 linux/amd64)
+
+<details>
+<summary>Former</summary>
+
 - 4.4.0-v2ray V2Ray 4.32.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.3.0-v2ray V2Ray 4.27.4 (V2Fly, a community-driven edition of V2Ray.)
 - 4.2.1-v2ray V2Ray 4.23.4 (V2Fly, a community-driven edition of V2Ray.)
@@ -18,11 +23,17 @@
 - 4.1.0-v2ray V2Ray 4.22.1 (V2Fly, a community-driven edition of V2Ray.)
 - 4.0.1-v2ray V2Ray 4.18.0 (Po) 20190228
 
+</details>
+
 ## Change Log
+
+> 2022-12
+
+- xray bump to 1.6.1
 
 > 2022-05
 
-- xray bumpt to 1.5.5
+- xray bump to 1.5.5
 
 > 2022-02
 
@@ -42,6 +53,9 @@
 - migrate from v2ray to xray super type of v2ray/v2fly
 - better support vless+xtls, from test stage, speedtest upgrade up to 3x of my vmess+ws
 - mac client recommand [Qv2ray][qv2ray]
+
+<details>
+<summary>Former</summary>
 
 > 2020-08
 
@@ -75,6 +89,8 @@
 
 - upgrade to centos 7
 - support aes-*-gcm encryption
+
+</details>
 
 ## Introducing
 
