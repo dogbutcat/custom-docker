@@ -31,12 +31,20 @@
 
 ## Change Log
 
+> 2026-03-24
+
+- **密钥自动管理**: Reality 和 VLESS Encryption 密钥均支持给定直接用、留空自动生成并持久化
+- **VLESS Encryption**: 使用 `xray vlessenc` 生成 ML-KEM-768 Post-Quantum 密钥对，客户端 encryption 字符串自动保存到 `vlessenc.enc`
+- **Reality 密钥**: 使用 `xray x25519` 自动生成，公钥和 shortId 在启动日志中输出
+- xray v26+ flow 自动注入: Reality 和 VLESS Encryption 入站的 clients 自动添加 `flow:xtls-rprx-vision`
+- 移除 `VLESSENC_MODE/TICKET/PADDING` ENV（现在由 `xray vlessenc` 整体生成）
+- nginx 示例改为 `network_mode: host`，与 xray 直接通过 `127.0.0.1` 互通
+- GeoIP2 模块默认注释（需手动编译匹配版本的 .so + 下载 mmdb 文件后启用）
+
 > 2026-03-23
 
 - xray bump to 26.2.6
-- **BREAKING**: ENV redesign — replaced `DECRYPTION` with split `VLESSENC_KEY/MODE/TICKET/PADDING`
 - New `REALITY_DEST/SNI/PRIVATE_KEY/SHORT_ID` ENVs for one-line Reality setup
-- `VLESSENC_KEY=auto` auto-generates and persists encryption keys
 - Global `DECRYPTION` injection into custom `INBOUNDS` (replaces all `"decryption":"none"`)
 - Integrated [RealiTLScanner](https://github.com/XTLS/RealiTLScanner) v0.2.1 for Reality SNI scanning
 - Dockerfile: merged RUN layers, removed `EXPOSE 22`, added `libc6-compat`, multi-arch support in install scripts
@@ -157,7 +165,7 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
   support environment variables in JSON format to dynamically configure Xray.
 
-  **Quick Setup ENVs** (auto-build 2-inbound config when `INBOUNDS` is not set):
+  **Quick Setup ENVs** (auto-build inbound config when `INBOUNDS` is not set):
 
   | ENV | Default | Description |
   |-----|---------|-------------|
@@ -165,13 +173,10 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
   | `VLESS_PORT` | `443` | VLESS + Reality inbound port |
   | `REALITY_DEST` | `www.microsoft.com:443` | Reality target destination |
   | `REALITY_SNI` | `www.microsoft.com` | Reality server name |
-  | `REALITY_PRIVATE_KEY` | (empty) | Reality private key — **set this to enable Reality inbound** |
-  | `REALITY_SHORT_ID` | (empty) | Reality short ID |
+  | `REALITY_PRIVATE_KEY` | (auto-generate) | Reality X25519 私钥。留空=自动生成并持久化，给定=直接用 |
+  | `REALITY_SHORT_ID` | (auto-generate) | Reality short ID。留空=自动生成 |
   | `VLESSENC_PORT` | `8443` | VLESS Encryption inbound port |
-  | `VLESSENC_KEY` | `none` | `none`=disabled, `auto`=auto-generate, or paste X25519 PrivateKey |
-  | `VLESSENC_MODE` | `native` | `native` / `xorpub` / `random` |
-  | `VLESSENC_TICKET` | `600s` | Ticket validity period |
-  | `VLESSENC_PADDING` | `100-111-1111...` | Padding configuration |
+  | `VLESSENC_KEY` | (auto-generate) | VLESS Encryption 完整 decryption 字符串。留空=自动生成 ML-KEM-768 Post-Quantum 并持久化，给定=直接用 |
   | `SS` | (empty) | Shadowsocks inbound JSON (empty=disabled) |
 
   **Advanced Override ENVs** (override auto-built config):
@@ -192,8 +197,19 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
   | Container Path | Purpose |
   |---|---|
-  | `/opt/xray/keys` | Persisted VLESS Encryption keys (auto-generated when `VLESSENC_KEY=auto`) |
+  | `/opt/xray/keys` | 自动生成的密钥持久化目录 |
   | `/opt/xray/config` | Optional `config.json` to override entire config |
+
+  **持久化文件 (`/opt/xray/keys/`)：**
+
+  | File | Content |
+  |---|---|
+  | `vlessenc.key` | VLESS Encryption 完整 decryption 字符串（服务端用） |
+  | `vlessenc.enc` | VLESS Encryption 完整 encryption 字符串（**客户端用，填入 mihomo/v2rayN**） |
+  | `reality.key` | Reality X25519 私钥 |
+  | `reality.shortid` | Reality shortId |
+
+  > 启动日志会输出 Reality 公钥、shortId、以及 Client encryption 字符串，直接复制到客户端配置即可。
 
 ### Reality SNI Scanner
 
