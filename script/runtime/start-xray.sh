@@ -69,14 +69,18 @@ init_variables() {
 	INBOUNDS='['
 
 	# Inbound 1: VLESS + Reality (if REALITY_PRIVATE_KEY is set)
+	# xray v26+: clients must have flow:xtls-rprx-vision
 	if [ -n "$REALITY_PRIVATE_KEY" ]; then
-		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESS_PORT}',"protocol":"vless","settings":{"clients":'${CLIENTS}',"decryption":"none"},"streamSettings":{"network":"tcp","security":"reality","realitySettings":{"show":false,"dest":"'${REALITY_DEST}'","xver":0,"serverNames":["'${REALITY_SNI}'"],"privateKey":"'${REALITY_PRIVATE_KEY}'","shortIds":["'${REALITY_SHORT_ID}'"]}}}'
+		REALITY_CLIENTS=$(echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g')
+		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESS_PORT}',"protocol":"vless","settings":{"clients":'${REALITY_CLIENTS}',"decryption":"none"},"streamSettings":{"network":"tcp","security":"reality","realitySettings":{"show":false,"dest":"'${REALITY_DEST}'","xver":0,"serverNames":["'${REALITY_SNI}'"],"privateKey":"'${REALITY_PRIVATE_KEY}'","shortIds":["'${REALITY_SHORT_ID}'"]}}}'
 	fi
 
 	# Inbound 2: VLESS Encryption (if DECRYPTION is not none)
+	# xray v26+: flow:xtls-rprx-vision 同样适用于 VLESS Encryption 入站
 	if [ "$DECRYPTION" != 'none' ]; then
 		[ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"
-		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":{"network":"tcp"}}'
+		ENC_CLIENTS=$(echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g')
+		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${ENC_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":{"network":"tcp"}}'
 	fi
 
 	# Inbound 3: Shadowsocks (if SS is set and not empty)
@@ -92,6 +96,7 @@ init_variables() {
 		INBOUNDS="${INBOUNDS}]"
 	fi
 }
+
 
 # Assemble final CONFIG JSON from ENV components
 output_config() {
