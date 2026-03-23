@@ -21,8 +21,10 @@ inject_flow() {
 	echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g'
 }
 
-# VLESS Encryption: 给定 VLESSENC_KEY → 直接用，留空 → 自动生成 ML-KEM-768
+# VLESS Encryption: 给定完整 decryption 字符串 → 直接用，留空/auto → 自动生成 ML-KEM-768
 resolve_decryption() {
+	# 兼容旧值
+	case "$VLESSENC_KEY" in auto|none|"") VLESSENC_KEY="" ;; esac
 	if [ -n "$VLESSENC_KEY" ]; then
 		DECRYPTION="$VLESSENC_KEY"
 		return
