@@ -1,8 +1,22 @@
-# pre-define to replace `identify_the_operating_system_and_architecture`
-MACHINE='64'
+#!/bin/bash
+
+# Install Xray-core for the docker image
+# https://github.com/XTLS/Xray-core
+
+identify_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64)   echo "64" ;;
+        aarch64|arm64)  echo "arm64-v8a" ;;
+        armv7l)         echo "arm32-v7a" ;;
+        *)
+            echo "error: Unsupported architecture $(uname -m)" >&2
+            exit 1
+            ;;
+    esac
+}
+
+MACHINE=$(identify_arch)
 DAT_PATH='/usr/bin/xray/'
-# Two very important variables
-# TMP_DIRECTORY="$(mktemp -du)/"
 TMP_DIRECTORY=${DAT_PATH}
 ZIP_FILE="${TMP_DIRECTORY}xray-linux-$MACHINE.zip"
 
@@ -17,21 +31,6 @@ version_number() {
     esac
 }
 
-get_version() {
-     # Get xray release XRAY_BINARY number
-    TMP_FILE="$(mktemp)"
-    install_software curl
-    # DO NOT QUOTE THESE `${PROXY}` VARIABLES!
-    if ! curl -o "$TMP_FILE" 'https://api.github.com/repos/XTLS/Xray-core/releases/latest'; then
-        rm "$TMP_FILE"
-        echo 'error: Failed to get release list, please check your network.'
-        exit 1
-    fi
-    RELEASE_LATEST="$(sed 'y/,/\n/' "$TMP_FILE" | grep 'tag_name' | awk -F '"' '{print $4}')"
-    rm "$TMP_FILE"
-    XRAY_BINARY="$(version_number "$RELEASE_LATEST")"
-}
-
 decompression() {
     echo "Starting unzip file"
     if ! unzip -q "$1" -d "$TMP_DIRECTORY"; then
@@ -44,60 +43,56 @@ decompression() {
 }
 
 download_xray() {
-    mkdir "$TMP_DIRECTORY"
+    mkdir -p "$TMP_DIRECTORY"
     DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$XRAY_BINARY/Xray-linux-$MACHINE.zip"
     echo "Downloading xray archive: $DOWNLOAD_LINK"
     if ! curl -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
         echo 'error: Download failed! Please check your network or try again.'
-        return 1
-    fi
-    echo "Downloading verification file for xray archive: $DOWNLOAD_LINK.dgst"
-    if ! curl -L -H 'Cache-Control: no-cache' -o "$ZIP_FILE.dgst" "$DOWNLOAD_LINK.dgst"; then
-        echo 'error: Download failed! Please check your network or try again.'
-        return 1
-    fi
-    if [[ "$(cat "$ZIP_FILE".dgst)" == 'Not Found' ]]; then
-        echo "error: This XRAY_BINARY ${XRAY_BINARY} does not support verification. Please replace with another XRAY_BINARY."
-        return 1
+        exit 1
     fi
 
-    # Verification of xray archive
-    for LISTSUM in 'md5' 'sha1' 'sha256' 'sha512'; do
-        SUM="$(${LISTSUM}sum "$ZIP_FILE" | sed 's/ .*//')"
-        CHECKSUM="$(grep ${LISTSUM^^} "$ZIP_FILE".dgst | grep "$SUM" -o -a | uniq)"
-        if [[ "$SUM" != "$CHECKSUM" ]]; then
-            echo 'error: Check failed! Please check your network or try again.'
-            return 1
-        fi
-    done
-}
-
-install_file() {
-    NAME="$1"
-    if [[ "$NAME" == 'xray' ]] ; then
-        install -m 755 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
-    elif [[ "$NAME" == 'geoip.dat' ]] || [[ "$NAME" == 'geosite.dat' ]]; then
-        install -m 644 "${TMP_DIRECTORY}$NAME" "${DAT_PATH}$NAME"
+    DGST_FILE="${ZIP_FILE}.dgst"
+    echo "Downloading verification file: ${DOWNLOAD_LINK}.dgst"
+    if ! curl -L -H 'Cache-Control: no-cache' -o "$DGST_FILE" "${DOWNLOAD_LINK}.dgst"; then
+        echo 'warning: Could not download dgst file, skipping verification.'
+        return 0
     fi
+
+    if [[ "$(cat "$DGST_FILE")" == 'Not Found' ]]; then
+        echo "warning: No dgst file for ${XRAY_BINARY}, skipping verification."
+        return 0
+    fi
+
+    # Verify SHA256 — dgst format is "SHA2-256= <hash>"
+    ACTUAL_SHA256="$(sha256sum "$ZIP_FILE" | awk '{print $1}')"
+    EXPECTED_SHA256="$(grep -i 'SHA2-256' "$DGST_FILE" | awk -F'= ' '{print $2}' | tr -d ' \r\n')"
+
+    if [ -z "$EXPECTED_SHA256" ]; then
+        echo "warning: Could not parse SHA256 from dgst file, skipping verification."
+        return 0
+    fi
+
+    if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+        echo "error: SHA256 check failed!"
+        echo "  Expected: $EXPECTED_SHA256"
+        echo "  Actual:   $ACTUAL_SHA256"
+        exit 1
+    fi
+
+    echo "SHA256 verification passed."
 }
 
 install_xray() {
-    # get XRAY_BINARY without XRAY_BINARY
-    [ -z "${XRAY_BINARY}" ] && get_version
-    # Download xray binary
+    if [ -z "${XRAY_BINARY}" ]; then
+        echo "error: XRAY_BINARY env is not set. Cannot determine version to download."
+        exit 1
+    fi
+    XRAY_BINARY="$(version_number "$XRAY_BINARY")"
     download_xray
     decompression "$ZIP_FILE"
-    # Install xray binary to /usr/local/bin/ and $DAT_PATH
-    # install_file xray
-    # install -d "$DAT_PATH"
-    # If the file exists, geoip.dat and geosite.dat will not be installed or updated
-    # if [[ ! -f "${DAT_PATH}.undat" ]]; then
-    #     install_file geoip.dat
-    #     install_file geosite.dat
-    # fi
 }
 
-main(){
+main() {
     install_xray
 }
 

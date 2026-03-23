@@ -4,6 +4,8 @@
 
 ## V2ray/Xray version in release tag
 
+- 7.0.0-xray Xray 26.2.6 (Xray, Penetrates Everything.) 12ee51e (go1.25.7 linux/amd64)
+- 6.0.0-xray Xray 25.1.30 (Xray, Penetrates Everything.) 0a8470c (go1.23.5 linux/amd64)
 - 5.9.0-xray Xray 1.8.6 (Xray, Penetrates Everything.) Custom (go1.21.4 linux/amd64)
 - 5.7.0-xray Xray 1.7.5 (Xray, Penetrates Everything.) Custom (go1.20 linux/amd64)
 - 5.6.0-xray Xray 1.6.1 (Xray, Penetrates Everything.) Custom (go1.19.2 linux/amd64)
@@ -28,6 +30,23 @@
 </details>
 
 ## Change Log
+
+> 2026-03-23
+
+- xray bump to 26.2.6
+- **BREAKING**: ENV redesign — replaced `DECRYPTION` with split `VLESSENC_KEY/MODE/TICKET/PADDING`
+- New `REALITY_DEST/SNI/PRIVATE_KEY/SHORT_ID` ENVs for one-line Reality setup
+- `VLESSENC_KEY=auto` auto-generates and persists encryption keys
+- Global `DECRYPTION` injection into custom `INBOUNDS` (replaces all `"decryption":"none"`)
+- Integrated [RealiTLScanner](https://github.com/XTLS/RealiTLScanner) v0.2.1 for Reality SNI scanning
+- Dockerfile: merged RUN layers, removed `EXPOSE 22`, added `libc6-compat`, multi-arch support in install scripts
+- start-xray.sh: POSIX-compatible, PID-based graceful shutdown, debug-only config printing
+- Separate volume paths: `/opt/xray/keys` for keys, `/opt/xray/config` for config.json override
+- Default SS disabled (set `SS` ENV to re-enable)
+
+> 2025-02
+
+- xray bump to 25.1.30
 
 > 2022-12
 
@@ -136,11 +155,60 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
 ### environment description
 
-  support `SS`, `VMESS_PORT`,`CLIENTS`, `INBOUNDS`, ~~`INBOUND_DETOUR`~~, `OUTBOUNDS`, ~~`OUTBOUND_DETOUR`~~, `ROUTING`, `TRANSPORT`, `CONFIG`, all these above is in JSON format, and override sequence by `VMESS_PORT`=`CLIENTS`=`SS`<`INBOUNDS`=`OUTBOUNDS`=`ROUTING`=`TRANSPORT`<`CONFIG`
+  support environment variables in JSON format to dynamically configure Xray.
 
-#### **VMESS_PORT**
+  **Quick Setup ENVs** (auto-build 2-inbound config when `INBOUNDS` is not set):
 
-this is for default vmess port setting, support offical format exclude `env:variable`
+  | ENV | Default | Description |
+  |-----|---------|-------------|
+  | `CLIENTS` | (default UUID) | Shared client list for all inbounds |
+  | `VLESS_PORT` | `443` | VLESS + Reality inbound port |
+  | `REALITY_DEST` | `www.microsoft.com:443` | Reality target destination |
+  | `REALITY_SNI` | `www.microsoft.com` | Reality server name |
+  | `REALITY_PRIVATE_KEY` | (empty) | Reality private key — **set this to enable Reality inbound** |
+  | `REALITY_SHORT_ID` | (empty) | Reality short ID |
+  | `VLESSENC_PORT` | `8443` | VLESS Encryption inbound port |
+  | `VLESSENC_KEY` | `none` | `none`=disabled, `auto`=auto-generate, or paste X25519 PrivateKey |
+  | `VLESSENC_MODE` | `native` | `native` / `xorpub` / `random` |
+  | `VLESSENC_TICKET` | `600s` | Ticket validity period |
+  | `VLESSENC_PADDING` | `100-111-1111...` | Padding configuration |
+  | `SS` | (empty) | Shadowsocks inbound JSON (empty=disabled) |
+
+  **Advanced Override ENVs** (override auto-built config):
+
+  | ENV | Description |
+  |-----|-------------|
+  | `INBOUNDS` | Full inbounds JSON array (overrides all Quick Setup ENVs above) |
+  | `OUTBOUNDS` | Full outbounds JSON array |
+  | `ROUTING` | Full routing JSON |
+  | `TRANSPORT` | Global transport settings |
+  | `DNS` | DNS settings |
+  | `CONFIG` | Full Xray config JSON (overrides everything) |
+  | `LOGLEVEL` | `"warning"` (default), set `"debug"` to print full config on startup |
+
+  Override priority: `Quick Setup ENVs` < `INBOUNDS/OUTBOUNDS/ROUTING` < `CONFIG` < `/opt/xray/config/config.json` file
+
+  **Volume Mounts:**
+
+  | Container Path | Purpose |
+  |---|---|
+  | `/opt/xray/keys` | Persisted VLESS Encryption keys (auto-generated when `VLESSENC_KEY=auto`) |
+  | `/opt/xray/config` | Optional `config.json` to override entire config |
+
+### Reality SNI Scanner
+
+  Integrated [RealiTLScanner](https://github.com/XTLS/RealiTLScanner) to find suitable Reality destinations on your VPS subnet:
+
+  ```bash
+  # Auto-detect VPS IP, scan /24 subnet (requires --network host)
+  docker run --rm --network host dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni
+
+  # Scan specific subnet
+  docker run --rm --network host <image> scan-sni -addr 1.2.3.0/24
+
+  # Or exec into running container (manual subnet required)
+  docker exec <container> scan-sni -addr 1.2.3.0/24
+  ```
 
 #### **SS**
 
