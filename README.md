@@ -1,6 +1,6 @@
 # docker-sshd-shadowsocks
 
-![Docker Pulls](https://img.shields.io/docker/pulls/dogbutcat/docker-sshd-shadowsocks)
+![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray)
 
 ## V2ray/Xray version in release tag
 
@@ -134,7 +134,7 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 - ~~standard start~~
 
     ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-        -d dogbutcat/docker-sshd-shadowsocks~~
+        -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
 
 - ~~set up with environments~~
 
@@ -146,20 +146,20 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
         ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
             --env ROOT_PW=1233
-            -d dogbutcat/docker-sshd-shadowsocks~~
+            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
 
   1. ~~custom $$ config json (**REMENBER to open port transfer with custom port**)~~
 
         ~~docker run -p 22:22 -p 5666:5666 -p 5666:5666/udp
             --env SS_JSON='{"server":"0.0.0.0","server_port":5666,"local_port":1080,
                             "password":"0x0x0x0x","timeout":600,"method":"aes-256-cfb"}'
-            -d dogbutcat/docker-sshd-shadowsocks~~
+            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
 
   1. ~~custom $$ worker~~
 
         ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
             --env WORKER_NUM=0
-            -d dogbutcat/docker-sshd-shadowsocks~~
+            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
 
 ### environment description
 
@@ -217,13 +217,28 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
 
   ```bash
   # Auto-detect VPS IP, scan /24 subnet (requires --network host)
-  docker run --rm --network host dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni
 
   # Scan specific subnet
-  docker run --rm --network host <image> scan-sni -addr 1.2.3.0/24
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni -addr 1.2.3.0/24
 
   # Or exec into running container (manual subnet required)
   docker exec <container> scan-sni -addr 1.2.3.0/24
+  ```
+
+### Xray 工具命令
+
+  通过 entrypoint 直接调用 xray 子命令：
+
+  ```bash
+  # 生成 VLESS Encryption 密钥对 (ML-KEM-768 Post-Quantum)
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray vlessenc
+
+  # 生成 Reality X25519 密钥对
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray x25519
+
+  # 从私钥推导公钥 (v26: Password 字段即公钥)
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray x25519 -i "<private_key>"
   ```
 
 #### **SS**
@@ -264,7 +279,7 @@ version: '2'
 services:
 
   v2ray:
-    image: dogbutcat/docker-sshd-shadowsocks
+    image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray
     environment:
       - INBOUNDS=[{"port":"1800", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}]
       #- CONFIG={"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}],"outbounds":[{"protocol":"freedom","settings":{}},{"protocol":"blackhole","settings":{},"tag":"blocked"}],"routing":{"strategy":"rules","settings":{"rules":[{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]}},"transport":{},"dns":{"network":"tcp","address":"1.1.1.1","port":53}}

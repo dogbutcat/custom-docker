@@ -49,13 +49,9 @@ ENV REALITY_PRIVATE_KEY=''
 ENV REALITY_SHORT_ID=''
 
 # --- Inbound 2: VLESS Encryption (CDN / relay / non-TLS) ---
-# Key: "auto" = auto-generate on first run, or paste X25519 PrivateKey from `xray x25519`
-# Set to "none" or leave empty to disable VLESS Encryption entirely
+# 留空=自动生成 ML-KEM-768 Post-Quantum 密钥对；给定完整 decryption 字符串=直接用
 ENV VLESSENC_PORT='8443'
-ENV VLESSENC_KEY='none'
-ENV VLESSENC_MODE='native'
-ENV VLESSENC_TICKET='600s'
-ENV VLESSENC_PADDING='100-111-1111.75-0-111.50-0-3333'
+ENV VLESSENC_KEY=''
 
 # --- Legacy: Shadowsocks inbound (set to empty to disable) ---
 ENV SS=''
@@ -73,6 +69,7 @@ ENV LOGLEVEL='"warning"'
 # copy pre-setting to workspace
 WORKDIR /root/xray
 COPY script/runtime script
-RUN chmod +x script/scan-sni.sh && ln -s /root/xray/script/scan-sni.sh /usr/local/bin/scan-sni
+RUN chmod +x script/scan-sni.sh script/start-xray.sh script/entrypoint.sh && \
+    ln -s /root/xray/script/scan-sni.sh /usr/local/bin/scan-sni
 
-ENTRYPOINT ["script/start-xray.sh"]
+ENTRYPOINT ["script/entrypoint.sh"]
