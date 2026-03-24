@@ -121,45 +121,24 @@
 
 </details>
 
-## Introducing
+## Quick Start
 
-this image is based on centos image & you need basic docker knowledge. You can get it from Google or [Git-book](https://yeasy.gitbooks.io/docker_practice/) for Chinese Learning. Then DON'T ASK ME! :D
+  ```yaml
+  services:
+    v2ray:
+      image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray
+      network_mode: host
+      environment:
+        - VLESS_PORT=443
+        - REALITY_DEST=n.sni-347-default.ssl.fastly.net:443
+        - REALITY_SNI=n.sni-347-default.ssl.fastly.net
+        - CLIENTS=[{"id":"your-uuid-here"}]
+      volumes:
+        - ./keys:/opt/xray/keys
+      restart: unless-stopped
+  ```
 
-## Word first
-
-this docker image is for **MY-SELF** usage for quick deploy, no special support. ~~for some reason, I use config file instead of cli named ss.json through, so I referred this [Dockerize an SSH service](https://docs.docker.com/engine/examples/running_ssh_service/#build-an-eg_sshd-image), using python version shadowsocks from pip install which also support udp transfer. You can also login in the container change sysctl.conf with root:root, if your host support BBR algorithm contribute by Google.~~
-
-## ~~How To Use It~~
-
-- ~~standard start~~
-
-    ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-        -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
-
-- ~~set up with environments~~
-
-  > as v2ray's shadowsocks setting not directly compatible with original one, some description is deprecated.
-
-  ~~current support ```ROOT_PW, SS_JSON, WORKER_NUM```~~
-
-  1. ~~custom root password (default root password is ```root```)~~
-
-        ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-            --env ROOT_PW=1233
-            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
-
-  1. ~~custom $$ config json (**REMENBER to open port transfer with custom port**)~~
-
-        ~~docker run -p 22:22 -p 5666:5666 -p 5666:5666/udp
-            --env SS_JSON='{"server":"0.0.0.0","server_port":5666,"local_port":1080,
-                            "password":"0x0x0x0x","timeout":600,"method":"aes-256-cfb"}'
-            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
-
-  1. ~~custom $$ worker~~
-
-        ~~docker run -p 22:22 -p 3389:3389 -p 3389:3389/udp
-            --env WORKER_NUM=0
-            -d ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray~~
+  > 启动后 `docker logs` 查看 Client Config Summary 获取客户端配置所需的公钥、shortId、encryption 字符串。
 
 ### environment description
 
@@ -242,60 +221,89 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
   docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray x25519 -i "<private_key>"
   ```
 
-#### **SS**
+### Mihomo 客户端配置示例
 
-this is special for running shadowsocks in v2ray, work in [INBOUNDS](#inbounds) segment.
+  以下字段从 `docker logs` 日志的 **Client Config Summary** 段中获取。
 
-#### **CLIENTS**
+  **Reality 直连：**
 
-this is quick setting for clients part in [INBOUND](#inbound), it will be override by [INBOUND](#inbound) setting.
+  ```yaml
+  proxies:
+    - name: reality
+      type: vless
+      server: <VPS_IP>
+      port: 443                # VLESS_PORT
+      uuid: <your-uuid>
+      flow: xtls-rprx-vision
+      network: tcp
+      tls: true
+      udp: true
+      servername: <REALITY_SNI>
+      reality-opts:
+        public-key: <日志 Public Key>
+        short-id: <日志 Short ID>
+  ```
 
-> the uuid `f2707fb2-70fa-6b38-c9b2-81d6f1efa323` is for default packing option, will be force override by a random uuid generated from kernel, please don't use it for open source safty. Sorry for inconvience.
+  **VLESS Encryption 直连 (TCP)：**
 
-#### **INBOUNDS**
+  ```yaml
+  proxies:
+    - name: vlessenc-tcp
+      type: vless
+      server: <VPS_IP>
+      port: 8443               # VLESSENC_PORT
+      uuid: <your-uuid>
+      flow: xtls-rprx-vision
+      encryption: <日志 Client Encryption>
+      network: tcp
+      udp: true
+  ```
 
-refer to v2ray's inbound segment, offical reference [here](https://www.v2ray.com/chapter_02/02_protocols.html), maybe already blocked by GFW.
+  **VLESS Encryption + CDN (WebSocket)：**
 
-#### ~~**INBOUND_DETOUR**~~
+  ```yaml
+  proxies:
+    - name: vlessenc-ws
+      type: vless
+      server: <cf-domain>      # CloudFlare 域名
+      port: 443
+      uuid: <your-uuid>
+      encryption: <日志 Client Encryption>
+      network: ws
+      tls: true
+      udp: true
+      servername: <cf-domain>
+      ws-opts:
+        path: /vless-ws        # 与 VLESSENC_NETWORK=ws:/vless-ws 对应
+        headers:
+          Host: <cf-domain>
+  ```
 
-#### **OUTBOUNDS**
+  **VLESS Encryption + CDN (gRPC)：**
 
-#### ~~**OUTBOUND_DETOUR**~~
+  ```yaml
+  proxies:
+    - name: vlessenc-grpc
+      type: vless
+      server: <cf-domain>
+      port: 443
+      uuid: <your-uuid>
+      encryption: <日志 Client Encryption>
+      network: grpc
+      tls: true
+      udp: true
+      servername: <cf-domain>
+      grpc-opts:
+        grpc-service-name: my-svc  # 与 VLESSENC_NETWORK=grpc:my-svc 对应
+  ```
 
-#### **ROUTING**
+## Troubleshooting
 
-#### **TRANSPORT**
-
-all these refer above
-
-#### **CONFIG**
-
-this is for the hole v2ray json config, you can place your setting here, or bind the container path `/opt/v2ray/` to your local one with `config.json` in it which support format is v2ray 3.x or 4.x
-
-> ⚠️Better expirence with Compose or Stack.
-
-```yaml
-version: '2'
-
-services:
-
-  v2ray:
-    image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray
-    environment:
-      - INBOUNDS=[{"port":"1800", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}]
-      #- CONFIG={"log":{"access":"/var/log/v2ray/access.log","error":"/var/log/v2ray/error.log","loglevel":"warning"},"inbounds":[{"port":"env:VMESS_PORT", "listen":"0.0.0.0", "protocol":"vmess","settings":{"clients":[{"id":"f2707fb2-70fa-6b38-c9b2-81d6f1efa323","level":1, "email":"vmess@default.domain"}]},"streamSettings":{"network":"tcp"}},{"protocol":"shadowsocks","listen":"0.0.0.0","port":3389,"settings":{"email":"ss@v2ray.com","method":"aes-256-gcm","password":"0x0x0x0x","network":"tcp,udp"}}],"outbounds":[{"protocol":"freedom","settings":{}},{"protocol":"blackhole","settings":{},"tag":"blocked"}],"routing":{"strategy":"rules","settings":{"rules":[{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]}},"transport":{},"dns":{"network":"tcp","address":"1.1.1.1","port":53}}
-    ports:
-      - "1800:1800"
-      - "3389:3389"
-```
-
-## Problems may happen
-
-- can't connect
-  - basicly check your time is sync with server
-  - check firewall on server
-  - check uuid is same on server and client
-  - check docker log for v2ray start normally
+- 连不上？
+  - 检查服务器和客户端时间是否同步
+  - 检查服务器防火墙端口
+  - 检查 UUID 客户端和服务端一致
+  - `docker logs` 查看 xray 是否正常启动
 
 [qv2ray]: https://github.com/Qv2ray/Qv2ray
 [tls-discussion]: https://github.com/v2ray/discussion/issues/704

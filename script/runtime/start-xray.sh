@@ -2,64 +2,38 @@
 
 DEFAULT_UUID='f2707fb2-70fa-6b38-c9b2-81d6f1efa323'
 KEY_DIR='/opt/xray/keys'
-CONFIG_DIR='/opt/xray/config'
-CONFIG_FILE="${CONFIG_DIR}/config.json"
+CONFIG_FILE='/opt/xray/config/config.json'
 
-# Replace default UUID with a random one
-replace_default_client() {
-	UUID=$(cat /proc/sys/kernel/random/uuid)
-	flag=$(echo "$1" | awk -v a="$DEFAULT_UUID" '{print match($0, a)}')
-	if [ "$flag" -gt 0 ]; then
-		echo "${1/$DEFAULT_UUID/$UUID}"
-	else
-		echo "$1"
-	fi
-}
+# 工具函数
+replace_default_client() { echo "${1//$DEFAULT_UUID/$(cat /proc/sys/kernel/random/uuid)}"; }
+inject_flow() { echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g'; }
+derive_pubkey() { xray x25519 -i "$1" 2>&1 | awk '/^Password:/{print $NF}'; }
+gen_shortid() { head -c 8 /dev/urandom | od -A n -t x1 | tr -d ' \n'; }
 
-# Inject flow:xtls-rprx-vision into CLIENTS JSON
-inject_flow() {
-	echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g'
-}
-
-# Build streamSettings JSON for VLESS Encryption
-# VLESSENC_NETWORK: tcp (default) | ws | ws:/path | grpc | grpc:serviceName
+# VLESSENC_NETWORK → streamSettings JSON
 build_enc_stream() {
-	NET="${VLESSENC_NETWORK%%:*}"
-	PARAM="${VLESSENC_NETWORK#*:}"
-	# 没有冒号时 PARAM==VLESSENC_NETWORK
+	NET="${VLESSENC_NETWORK%%:*}"; PARAM="${VLESSENC_NETWORK#*:}"
 	[ "$PARAM" = "$VLESSENC_NETWORK" ] && PARAM=""
 	case "$NET" in
-		ws)
-			WS_PATH="${PARAM:-/}"
-			echo '{"network":"ws","wsSettings":{"path":"'"$WS_PATH"'"}}'  ;;
-		grpc)
-			GRPC_SVC="${PARAM:-vless}"
-			echo '{"network":"grpc","grpcSettings":{"serviceName":"'"$GRPC_SVC"'"}}'  ;;
-		*)
-			echo '{"network":"tcp"}'  ;;
+		ws)   echo '{"network":"ws","wsSettings":{"path":"'"${PARAM:-/}"'"}}'  ;;
+		grpc) echo '{"network":"grpc","grpcSettings":{"serviceName":"'"${PARAM:-vless}"'"}}'  ;;
+		*)    echo '{"network":"tcp"}'  ;;
 	esac
 }
 
-# VLESS Encryption: 给定完整 decryption 字符串 → 直接用，留空/auto → 自动生成 ML-KEM-768
+# VLESS Encryption 密钥: 传入 → 直接用, 持久化 → 加载, 否则 → 自动生成
 resolve_decryption() {
-	# 兼容旧值
 	case "$VLESSENC_KEY" in auto|none|"") VLESSENC_KEY="" ;; esac
-	if [ -n "$VLESSENC_KEY" ]; then
-		DECRYPTION="$VLESSENC_KEY"
-		return
-	fi
-	# 尝试加载持久化
+	[ -n "$VLESSENC_KEY" ] && { DECRYPTION="$VLESSENC_KEY"; return; }
+	# 加载持久化
 	if [ -f "${KEY_DIR}/vlessenc.key" ] && [ -s "${KEY_DIR}/vlessenc.key" ]; then
 		DECRYPTION=$(cat "${KEY_DIR}/vlessenc.key")
 		case "$DECRYPTION" in mlkem768*) return ;; esac
-		# 旧格式，清理后重新生成
 		rm -f "${KEY_DIR}"/vlessenc.*
 	fi
 	# 自动生成
 	ENC_OUTPUT=$(xray vlessenc 2>/dev/null)
-	if [ -z "$ENC_OUTPUT" ]; then
-		echo "ERROR: xray vlessenc failed"; DECRYPTION='none'; return
-	fi
+	[ -z "$ENC_OUTPUT" ] && { echo "ERROR: xray vlessenc failed"; DECRYPTION='none'; return; }
 	DECRYPTION=$(echo "$ENC_OUTPUT" | grep '"decryption"' | tail -1 | sed 's/.*: "//;s/"$//')
 	CLIENT_ENC=$(echo "$ENC_OUTPUT" | grep '"encryption"' | tail -1 | sed 's/.*: "//;s/"$//')
 	[ -z "$DECRYPTION" ] && { echo "ERROR: parse vlessenc failed"; DECRYPTION='none'; return; }
@@ -68,20 +42,18 @@ resolve_decryption() {
 	echo "$CLIENT_ENC" > "${KEY_DIR}/vlessenc.enc"
 }
 
-# Reality: 给定 REALITY_PRIVATE_KEY → 直接用，留空 → 自动生成 X25519
-# v26: xray x25519 输出 PrivateKey/Password(=公钥)/Hash32
+# Reality 密钥: 传入 → 直接用, 持久化 → 加载, 否则 → 自动生成
 resolve_reality() {
 	if [ -n "$REALITY_PRIVATE_KEY" ]; then
-		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>&1 | awk '/^Password:/{print $NF}')
-		return
+		REALITY_PUBLIC_KEY=$(derive_pubkey "$REALITY_PRIVATE_KEY"); return
 	fi
-	# 尝试加载持久化
+	# 加载持久化
 	if [ -f "${KEY_DIR}/reality.key" ] && [ -s "${KEY_DIR}/reality.key" ]; then
 		REALITY_PRIVATE_KEY=$(cat "${KEY_DIR}/reality.key")
-		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>&1 | awk '/^Password:/{print $NF}')
+		REALITY_PUBLIC_KEY=$(derive_pubkey "$REALITY_PRIVATE_KEY")
 		[ -z "$REALITY_SHORT_ID" ] && {
 			[ -f "${KEY_DIR}/reality.shortid" ] && REALITY_SHORT_ID=$(cat "${KEY_DIR}/reality.shortid") \
-				|| { REALITY_SHORT_ID=$(head -c 8 /dev/urandom | od -A n -t x1 | tr -d ' \n'); echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"; }
+				|| { REALITY_SHORT_ID=$(gen_shortid); echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"; }
 		}
 		return
 	fi
@@ -90,13 +62,13 @@ resolve_reality() {
 	REALITY_PRIVATE_KEY=$(echo "$KEY_OUTPUT" | awk '/^PrivateKey:/{print $NF}')
 	REALITY_PUBLIC_KEY=$(echo "$KEY_OUTPUT" | awk '/^Password:/{print $NF}')
 	[ -z "$REALITY_PRIVATE_KEY" ] && { echo "ERROR: xray x25519 failed"; return; }
-	[ -z "$REALITY_SHORT_ID" ] && REALITY_SHORT_ID=$(head -c 8 /dev/urandom | od -A n -t x1 | tr -d ' \n')
+	[ -z "$REALITY_SHORT_ID" ] && REALITY_SHORT_ID=$(gen_shortid)
 	mkdir -p "$KEY_DIR"
 	echo "$REALITY_PRIVATE_KEY" > "${KEY_DIR}/reality.key"
 	echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"
 }
 
-# Build INBOUNDS from ENVs
+# 构建 INBOUNDS
 init_variables() {
 	if [ "$INBOUNDS" != '[]' ]; then
 		[ "$DECRYPTION" != 'none' ] && \
@@ -107,25 +79,20 @@ init_variables() {
 	INBOUNDS='['
 	FLOW_CLIENTS=$(inject_flow)
 
-	# Reality inbound
-	if [ -n "$REALITY_PRIVATE_KEY" ]; then
+	# Reality
+	[ -n "$REALITY_PRIVATE_KEY" ] && \
 		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESS_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"none"},"streamSettings":{"network":"tcp","security":"reality","realitySettings":{"show":false,"dest":"'${REALITY_DEST}'","xver":0,"serverNames":["'${REALITY_SNI}'"],"privateKey":"'${REALITY_PRIVATE_KEY}'","shortIds":["'${REALITY_SHORT_ID}'"]}}}'
-	fi
 
-	# VLESS Encryption inbound
+	# VLESS Encryption
 	if [ "$DECRYPTION" != 'none' ]; then
 		[ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"
-		ENC_STREAM=$(build_enc_stream)
-		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":'${ENC_STREAM}'}'
+		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":'$(build_enc_stream)'}'
 	fi
 
-	# Shadowsocks inbound
-	if [ -n "$SS" ]; then
-		[ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"
-		INBOUNDS="${INBOUNDS}${SS}"
-	fi
+	# Shadowsocks
+	[ -n "$SS" ] && { [ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"; INBOUNDS="${INBOUNDS}${SS}"; }
 
-	# Fallback
+	# Fallback / 闭合
 	if [ "$INBOUNDS" = '[' ]; then
 		INBOUNDS='[{"port":'${VLESS_PORT}',"listen":"0.0.0.0","protocol":"vless","settings":{"clients":'${CLIENTS}',"decryption":"none"},"streamSettings":{"network":"tcp"}}]'
 	else
@@ -133,54 +100,38 @@ init_variables() {
 	fi
 }
 
-# Assemble final config JSON
+# 组装 config + 输出日志
 output_config() {
 	if [ "$CONFIG" = '{}' ]; then
 		BASE='"stats":{},"log":{"loglevel":'${LOGLEVEL}'},"api":{"tag":"api","services":["HandlerService","LoggerService","StatsService"]},"policy":{"levels":{"0":{"statsUserUplink":true,"statsUserDownlink":true},"1":{"statsUserUplink":true,"statsUserDownlink":true}},"system":{"statsInboundUplink":true,"statsInboundDownlink":true}}'
 		CORE='"inbounds":'${INBOUNDS}',"outbounds":'${OUTBOUNDS}',"routing":'${ROUTING}',"transport":'${TRANSPORT}
-
-		if [ "$DNS" = '{}' ]; then CONFIG='{'${BASE}','${CORE}'}'
-		else CONFIG='{'${BASE}','${CORE}',"dns":'${DNS}'}'
-		fi
-
+		[ "$DNS" = '{}' ] && CONFIG='{'${BASE}','${CORE}'}' || CONFIG='{'${BASE}','${CORE}',"dns":'${DNS}'}'
 		[ -e "$CONFIG_FILE" ] && { CONFIG=$(cat "$CONFIG_FILE"); echo "Config overridden by $CONFIG_FILE"; }
 	fi
 
-	mkdir -p /tmp
 	echo "$CONFIG" > /tmp/config.json
+	echo "Main Clients:"; echo "${CLIENTS}" | jq .
 
-	echo "Main Clients:"
-	echo "${CLIENTS}" | jq .
-
-	# 客户端配置汇总
 	echo "========== Client Config Summary =========="
-	if [ -n "$REALITY_PRIVATE_KEY" ]; then
+	[ -n "$REALITY_PRIVATE_KEY" ] && {
 		echo "[Reality] Port:$VLESS_PORT  SNI:$REALITY_SNI"
 		echo "  Public Key: $REALITY_PUBLIC_KEY"
 		echo "  Short ID:   $REALITY_SHORT_ID"
-	fi
-	if [ "$DECRYPTION" != 'none' ]; then
+	}
+	[ "$DECRYPTION" != 'none' ] && {
 		echo "[VLESS Encryption] Port:$VLESSENC_PORT  Network:$VLESSENC_NETWORK"
-		if [ -f "${KEY_DIR}/vlessenc.enc" ]; then
-			echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")"
-		else
-			echo "  Client Encryption: (user-provided key, check your xray vlessenc output for encryption string)"
-		fi
-	fi
+		[ -f "${KEY_DIR}/vlessenc.enc" ] \
+			&& echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")" \
+			|| echo "  Client Encryption: (user-provided key, use your xray vlessenc output)"
+	}
 	echo "==========================================="
 
-	if [ "$LOGLEVEL" = '"debug"' ]; then
-		echo "Current Config:"; echo "${CONFIG}" | jq .
-	else
-		echo "Config written to /tmp/config.json (set LOGLEVEL='\"debug\"' to print full config)"
-	fi
+	[ "$LOGLEVEL" = '"debug"' ] \
+		&& { echo "Current Config:"; echo "${CONFIG}" | jq .; } \
+		|| echo "Config written to /tmp/config.json (set LOGLEVEL='\"debug\"' to print full config)"
 }
 
-finish() {
-	echo "Shutting down xray (PID: $XRAY_PID)..."
-	kill "$XRAY_PID" 2>/dev/null; wait "$XRAY_PID" 2>/dev/null
-	exit 0
-}
+finish() { echo "Shutting down xray..."; kill "$XRAY_PID" 2>/dev/null; wait "$XRAY_PID" 2>/dev/null; exit 0; }
 
 # --- Main ---
 resolve_decryption
