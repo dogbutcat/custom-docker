@@ -50,27 +50,28 @@ resolve_decryption() {
 }
 
 # Reality: 给定 REALITY_PRIVATE_KEY → 直接用，留空 → 自动生成 X25519
+# v26: xray x25519 输出 PrivateKey/Password(=公钥)/Hash32
 resolve_reality() {
 	if [ -n "$REALITY_PRIVATE_KEY" ]; then
-		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>/dev/null | awk '/Public/{print $NF}')
+		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>&1 | awk '/^Password:/{print $NF}')
 		return
 	fi
 	# 尝试加载持久化
 	if [ -f "${KEY_DIR}/reality.key" ] && [ -s "${KEY_DIR}/reality.key" ]; then
 		REALITY_PRIVATE_KEY=$(cat "${KEY_DIR}/reality.key")
-		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>/dev/null | awk '/Public/{print $NF}')
+		REALITY_PUBLIC_KEY=$(xray x25519 -i "$REALITY_PRIVATE_KEY" 2>&1 | awk '/^Password:/{print $NF}')
 		[ -z "$REALITY_SHORT_ID" ] && {
 			[ -f "${KEY_DIR}/reality.shortid" ] && REALITY_SHORT_ID=$(cat "${KEY_DIR}/reality.shortid") \
-				|| { REALITY_SHORT_ID=$(openssl rand -hex 8); echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"; }
+				|| { REALITY_SHORT_ID=$(head -c 8 /dev/urandom | od -A n -t x1 | tr -d ' \n'); echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"; }
 		}
 		return
 	fi
 	# 自动生成
-	KEY_OUTPUT=$(xray x25519 2>/dev/null)
-	REALITY_PRIVATE_KEY=$(echo "$KEY_OUTPUT" | awk '/Private/{print $NF}')
-	REALITY_PUBLIC_KEY=$(echo "$KEY_OUTPUT" | awk '/Public/{print $NF}')
+	KEY_OUTPUT=$(xray x25519 2>&1)
+	REALITY_PRIVATE_KEY=$(echo "$KEY_OUTPUT" | awk '/^PrivateKey:/{print $NF}')
+	REALITY_PUBLIC_KEY=$(echo "$KEY_OUTPUT" | awk '/^Password:/{print $NF}')
 	[ -z "$REALITY_PRIVATE_KEY" ] && { echo "ERROR: xray x25519 failed"; return; }
-	[ -z "$REALITY_SHORT_ID" ] && REALITY_SHORT_ID=$(openssl rand -hex 8)
+	[ -z "$REALITY_SHORT_ID" ] && REALITY_SHORT_ID=$(head -c 8 /dev/urandom | od -A n -t x1 | tr -d ' \n')
 	mkdir -p "$KEY_DIR"
 	echo "$REALITY_PRIVATE_KEY" > "${KEY_DIR}/reality.key"
 	echo "$REALITY_SHORT_ID" > "${KEY_DIR}/reality.shortid"
@@ -140,7 +141,11 @@ output_config() {
 	fi
 	if [ "$DECRYPTION" != 'none' ]; then
 		echo "[VLESS Encryption] Port:$VLESSENC_PORT"
-		[ -f "${KEY_DIR}/vlessenc.enc" ] && echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")"
+		if [ -f "${KEY_DIR}/vlessenc.enc" ]; then
+			echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")"
+		else
+			echo "  Client Encryption: (user-provided key, check your xray vlessenc output for encryption string)"
+		fi
 	fi
 	echo "==========================================="
 
