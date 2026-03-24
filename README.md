@@ -177,6 +177,7 @@ this docker image is for **MY-SELF** usage for quick deploy, no special support.
   | `REALITY_SHORT_ID` | (auto-generate) | Reality short ID。留空=自动生成 |
   | `VLESSENC_PORT` | `8443` | VLESS Encryption inbound port |
   | `VLESSENC_KEY` | (auto-generate) | VLESS Encryption 完整 decryption 字符串。留空=自动生成 ML-KEM-768 Post-Quantum 并持久化，给定=直接用 |
+  | `VLESSENC_NETWORK` | `tcp` | 传输层协议：`tcp` / `ws` / `ws:/custom-path` / `grpc` / `grpc:serviceName` |
   | `SS` | (empty) | Shadowsocks inbound JSON (empty=disabled) |
 
   **Advanced Override ENVs** (override auto-built config):

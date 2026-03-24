@@ -21,6 +21,25 @@ inject_flow() {
 	echo "$CLIENTS" | sed 's/}]/,"flow":"xtls-rprx-vision"}]/g' | sed 's/},/,"flow":"xtls-rprx-vision"},/g'
 }
 
+# Build streamSettings JSON for VLESS Encryption
+# VLESSENC_NETWORK: tcp (default) | ws | ws:/path | grpc | grpc:serviceName
+build_enc_stream() {
+	NET="${VLESSENC_NETWORK%%:*}"
+	PARAM="${VLESSENC_NETWORK#*:}"
+	# 没有冒号时 PARAM==VLESSENC_NETWORK
+	[ "$PARAM" = "$VLESSENC_NETWORK" ] && PARAM=""
+	case "$NET" in
+		ws)
+			WS_PATH="${PARAM:-/}"
+			echo '{"network":"ws","wsSettings":{"path":"'"$WS_PATH"'"}}'  ;;
+		grpc)
+			GRPC_SVC="${PARAM:-vless}"
+			echo '{"network":"grpc","grpcSettings":{"serviceName":"'"$GRPC_SVC"'"}}'  ;;
+		*)
+			echo '{"network":"tcp"}'  ;;
+	esac
+}
+
 # VLESS Encryption: 给定完整 decryption 字符串 → 直接用，留空/auto → 自动生成 ML-KEM-768
 resolve_decryption() {
 	# 兼容旧值
@@ -96,7 +115,8 @@ init_variables() {
 	# VLESS Encryption inbound
 	if [ "$DECRYPTION" != 'none' ]; then
 		[ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"
-		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":{"network":"tcp"}}'
+		ENC_STREAM=$(build_enc_stream)
+		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":'${ENC_STREAM}'}'
 	fi
 
 	# Shadowsocks inbound
@@ -140,7 +160,7 @@ output_config() {
 		echo "  Short ID:   $REALITY_SHORT_ID"
 	fi
 	if [ "$DECRYPTION" != 'none' ]; then
-		echo "[VLESS Encryption] Port:$VLESSENC_PORT"
+		echo "[VLESS Encryption] Port:$VLESSENC_PORT  Network:$VLESSENC_NETWORK"
 		if [ -f "${KEY_DIR}/vlessenc.enc" ]; then
 			echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")"
 		else

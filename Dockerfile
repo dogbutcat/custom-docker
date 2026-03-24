@@ -52,6 +52,8 @@ ENV REALITY_SHORT_ID=''
 # 留空=自动生成 ML-KEM-768 Post-Quantum 密钥对；给定完整 decryption 字符串=直接用
 ENV VLESSENC_PORT='8443'
 ENV VLESSENC_KEY=''
+# tcp (默认) | ws | ws:/path | grpc | grpc:serviceName
+ENV VLESSENC_NETWORK='tcp'
 
 # --- Legacy: Shadowsocks inbound (set to empty to disable) ---
 ENV SS=''
