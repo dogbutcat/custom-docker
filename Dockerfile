@@ -7,8 +7,8 @@ RUN apt-get update && \
     apt-get install -y curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
-ENV XRAY_BINARY=v26.2.6
-ENV VERSION=7.0.0
+ENV XRAY_BINARY=v26.3.27
+ENV VERSION=7.1.0
 
 RUN bash ./install-xray.sh
 RUN bash ./install-geoip.sh
@@ -52,7 +52,7 @@ ENV REALITY_SHORT_ID=''
 # 留空=自动生成 ML-KEM-768 Post-Quantum 密钥对；给定完整 decryption 字符串=直接用
 ENV VLESSENC_PORT='8443'
 ENV VLESSENC_KEY=''
-# tcp (默认) | ws | ws:/path | grpc | grpc:serviceName
+# tcp (默认) | ws | ws:/path | grpc | grpc:serviceName | xhttp | xhttp:/path
 ENV VLESSENC_NETWORK='tcp'
 
 # --- Legacy: Shadowsocks inbound (set to empty to disable) ---

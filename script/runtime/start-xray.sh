@@ -15,9 +15,10 @@ build_enc_stream() {
 	NET="${VLESSENC_NETWORK%%:*}"; PARAM="${VLESSENC_NETWORK#*:}"
 	[ "$PARAM" = "$VLESSENC_NETWORK" ] && PARAM=""
 	case "$NET" in
-		ws)   echo '{"network":"ws","wsSettings":{"path":"'"${PARAM:-/}"'"}}'  ;;
-		grpc) echo '{"network":"grpc","grpcSettings":{"serviceName":"'"${PARAM:-vless}"'"}}'  ;;
-		*)    echo '{"network":"tcp"}'  ;;
+		ws)    echo '{"network":"ws","wsSettings":{"path":"'"${PARAM:-/}"'"}}'  ;;
+		grpc)  echo '{"network":"grpc","grpcSettings":{"serviceName":"'"${PARAM:-vless}"'"}}'  ;;
+		xhttp) echo '{"network":"xhttp","xhttpSettings":{"path":"'"${PARAM:-/}"'","mode":"auto"}}' ;;
+		*)     echo '{"network":"tcp"}'  ;;
 	esac
 }
 
@@ -86,7 +87,10 @@ init_variables() {
 	# VLESS Encryption
 	if [ "$DECRYPTION" != 'none' ]; then
 		[ "$INBOUNDS" != '[' ] && INBOUNDS="${INBOUNDS},"
-		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${FLOW_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":'$(build_enc_stream)'}'
+		# Note: flow: xtls-rprx-vision might not be strictly necessary for VLESS Enc TCP, but kept for consistency.
+		ENC_CLIENTS="${FLOW_CLIENTS}"
+		[ "${VLESSENC_NETWORK%%:*}" != "tcp" ] && ENC_CLIENTS="${CLIENTS}"
+		INBOUNDS="${INBOUNDS}"'{"listen":"0.0.0.0","port":'${VLESSENC_PORT}',"protocol":"vless","settings":{"clients":'${ENC_CLIENTS}',"decryption":"'${DECRYPTION}'"},"streamSettings":'$(build_enc_stream)'}'
 	fi
 
 	# Shadowsocks
@@ -120,6 +124,7 @@ output_config() {
 	}
 	[ "$DECRYPTION" != 'none' ] && {
 		echo "[VLESS Encryption] Port:$VLESSENC_PORT  Network:$VLESSENC_NETWORK"
+		[ "${VLESSENC_NETWORK%%:*}" != "tcp" ] && echo "  Note: Do not set 'flow' on client for this transport"
 		[ -f "${KEY_DIR}/vlessenc.enc" ] \
 			&& echo "  Client Encryption: $(cat "${KEY_DIR}/vlessenc.enc")" \
 			|| echo "  Client Encryption: (user-provided key, use your xray vlessenc output)"
@@ -136,8 +141,8 @@ finish() { echo "Shutting down xray..."; kill "$XRAY_PID" 2>/dev/null; wait "$XR
 # --- Main ---
 resolve_decryption
 resolve_reality
-init_variables
 CLIENTS=$(replace_default_client "$CLIENTS")
+init_variables
 output_config
 xray --config=/tmp/config.json &
 XRAY_PID=$!

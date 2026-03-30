@@ -1,9 +1,10 @@
 # docker-sshd-shadowsocks
 
-![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray)
+![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray)
 
 ## V2ray/Xray version in release tag
 
+- 7.1.0-xray Xray 26.3.27 (Xray, Penetrates Everything.) d2758a0 (go1.26.1 linux/amd64)
 - 7.0.0-xray Xray 26.2.6 (Xray, Penetrates Everything.) 12ee51e (go1.25.7 linux/amd64)
 - 6.0.0-xray Xray 25.1.30 (Xray, Penetrates Everything.) 0a8470c (go1.23.5 linux/amd64)
 - 5.9.0-xray Xray 1.8.6 (Xray, Penetrates Everything.) Custom (go1.21.4 linux/amd64)
@@ -30,6 +31,13 @@
 </details>
 
 ## Change Log
+
+> 2026-03-30
+
+- xray bump to 26.3.27
+- **VLESS Encryption**: 新增 `xhttp` 传输支持（`VLESSENC_NETWORK=xhttp:/path`），推荐用于 CDN/Relay 场景
+- **Bugfix**: 修复 `ws`/`grpc`/`xhttp` 传输不应注入 `flow` 的 bug
+- **Bugfix**: 修复 UUID 替换时序 bug，确保 `FLOW_CLIENTS` 正确使用自定义 UUID
 
 > 2026-03-24
 
@@ -126,7 +134,7 @@
   ```yaml
   services:
     v2ray:
-      image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray
+      image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray
       network_mode: host
       environment:
         - VLESS_PORT=443
@@ -156,7 +164,7 @@
   | `REALITY_SHORT_ID` | (auto-generate) | Reality short ID。留空=自动生成 |
   | `VLESSENC_PORT` | `8443` | VLESS Encryption inbound port |
   | `VLESSENC_KEY` | (auto-generate) | VLESS Encryption 完整 decryption 字符串。留空=自动生成 ML-KEM-768 Post-Quantum 并持久化，给定=直接用 |
-  | `VLESSENC_NETWORK` | `tcp` | 传输层协议：`tcp` / `ws` / `ws:/custom-path` / `grpc` / `grpc:serviceName` |
+  | `VLESSENC_NETWORK` | `tcp` | 传输层协议：`tcp` / `xhttp` / `xhttp:/custom-path` / `ws` (deprecated) / `grpc` (deprecated) |
   | `SS` | (empty) | Shadowsocks inbound JSON (empty=disabled) |
 
   **Advanced Override ENVs** (override auto-built config):
@@ -197,10 +205,10 @@
 
   ```bash
   # Auto-detect VPS IP, scan /24 subnet (requires --network host)
-  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray scan-sni
 
   # Scan specific subnet
-  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray scan-sni -addr 1.2.3.0/24
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray scan-sni -addr 1.2.3.0/24
 
   # Or exec into running container (manual subnet required)
   docker exec <container> scan-sni -addr 1.2.3.0/24
@@ -212,13 +220,13 @@
 
   ```bash
   # 生成 VLESS Encryption 密钥对 (ML-KEM-768 Post-Quantum)
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray vlessenc
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray vlessenc
 
   # 生成 Reality X25519 密钥对
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray x25519
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray x25519
 
   # 从私钥推导公钥 (v26: Password 字段即公钥)
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.0.0-xray xray x25519 -i "<private_key>"
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray x25519 -i "<private_key>"
   ```
 
 ### Mihomo 客户端配置示例
@@ -259,7 +267,27 @@
       udp: true
   ```
 
-  **VLESS Encryption + CDN (WebSocket)：**
+  **VLESS Encryption + CDN (XHTTP) [推荐]：**
+
+  ```yaml
+  proxies:
+    - name: vlessenc-xhttp
+      type: vless
+      server: <cf-domain>      # CloudFlare 域名
+      port: 443
+      uuid: <your-uuid>
+      encryption: <日志 Client Encryption>
+      network: xhttp
+      tls: true
+      udp: true
+      servername: <cf-domain>
+      xhttp-opts:
+        path: /vless-xhttp     # 与 VLESSENC_NETWORK=xhttp:/vless-xhttp 对应
+        host: <cf-domain>
+        mode: auto
+  ```
+
+  **VLESS Encryption + CDN (WebSocket) [已废弃]：**
 
   ```yaml
   proxies:
@@ -279,7 +307,7 @@
           Host: <cf-domain>
   ```
 
-  **VLESS Encryption + CDN (gRPC)：**
+  **VLESS Encryption + CDN (gRPC) [已废弃]：**
 
   ```yaml
   proxies:
