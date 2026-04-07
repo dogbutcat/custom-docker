@@ -9,6 +9,7 @@ INSTALL_DIR="/usr/bin/xray"
 identify_arch() {
     case "$(uname -m)" in
         x86_64|amd64)   echo "64" ;;
+        aarch64|arm64)  echo "arm64-v8a" ;;
         *)
             echo "warning: RealiTLScanner only provides linux-64 binary, skipping for $(uname -m)" >&2
             exit 0

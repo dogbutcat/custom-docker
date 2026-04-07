@@ -13,6 +13,7 @@ ENV VERSION=7.1.0
 RUN bash ./install-xray.sh
 RUN bash ./install-geoip.sh
 RUN bash ./install-scanner.sh
+RUN touch /usr/bin/xray/RealiTLScanner
 
 FROM alpine:latest
 
