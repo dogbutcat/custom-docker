@@ -7,26 +7,27 @@ RUN apt-get update && \
     apt-get install -y curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
-ENV XRAY_BINARY=v26.3.27
-ENV VERSION=7.1.0
+ENV XRAY_BINARY=v26.9.30
+ENV VERSION=7.2.0
 
 RUN bash ./install-xray.sh
 RUN bash ./install-geoip.sh
 RUN bash ./install-scanner.sh
-RUN touch /usr/bin/xray/RealiTLScanner
 
 FROM alpine:latest
+
+ENV XRAY_BINARY=v26.9.30
+ENV VERSION=7.2.0
 
 COPY --from=builder /usr/bin/xray/xray /usr/bin/xray/
 COPY --from=builder /usr/bin/xray/geoip.dat /usr/bin/xray/
 COPY --from=builder /usr/bin/xray/geosite.dat /usr/bin/xray/
-COPY --from=builder /usr/bin/xray/RealiTLScanner /usr/bin/xray/
+COPY --from=builder /usr/bin/xray/optional/ /usr/bin/xray/
 
 RUN set -ex && \
     apk --no-cache add ca-certificates vim jq libc6-compat && \
     mkdir /var/log/xray/ &&\
-    chmod +x /usr/bin/xray/xray && \
-    chmod +x /usr/bin/xray/RealiTLScanner 2>/dev/null || true
+    chmod +x /usr/bin/xray/xray
 
 ENV PATH="/usr/bin/xray:$PATH"
 
@@ -63,7 +64,7 @@ ENV SS=''
 # Set these to override the auto-built config entirely
 ENV INBOUNDS='[]'
 ENV OUTBOUNDS='[{"protocol":"freedom","settings":{},"tag":"direct"},{"protocol":"blackhole","settings":{},"tag":"blocked"}]'
-ENV ROUTING='{"settings":{"rules":[{"inboundTag":["api"],"outboundTag":"api","type":"field"},{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]},"strategy":"rules"}'
+ENV ROUTING='{"rules":[{"inboundTag":["api"],"outboundTag":"api","type":"field"},{"type":"field","ip":["0.0.0.0/8","10.0.0.0/8","100.64.0.0/10","127.0.0.0/8","169.254.0.0/16","172.16.0.0/12","192.0.0.0/24","192.0.2.0/24","192.168.0.0/16","198.18.0.0/15","198.51.100.0/24","203.0.113.0/24","::1/128","fc00::/7","fe80::/10"],"outboundTag":"blocked"}]}'
 ENV TRANSPORT='{}'
 ENV DNS='{}'
 ENV CONFIG='{}'

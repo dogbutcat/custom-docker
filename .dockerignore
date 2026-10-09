@@ -1,0 +1,15 @@
+# Limit build context to the image definition and its installer/runtime scripts.
+**
+!Dockerfile
+!script/
+script/**
+!script/install/
+script/install/**
+!script/install/install-xray.sh
+!script/install/install-scanner.sh
+!script/install/install-geoip.sh
+!script/runtime/
+script/runtime/**
+!script/runtime/entrypoint.sh
+!script/runtime/start-xray.sh
+!script/runtime/scan-sni.sh

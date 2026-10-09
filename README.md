@@ -1,9 +1,10 @@
 # docker-sshd-shadowsocks
 
-![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray)
+![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray)
 
 ## V2ray/Xray version in release tag
 
+- 7.2.0-xray Xray 26.9.30 (Xray, Penetrates Everything.) b26a91d (go1.27.1 linux/amd64)
 - 7.1.0-xray Xray 26.3.27 (Xray, Penetrates Everything.) d2758a0 (go1.26.1 linux/amd64)
 - 7.0.0-xray Xray 26.2.6 (Xray, Penetrates Everything.) 12ee51e (go1.25.7 linux/amd64)
 - 6.0.0-xray Xray 25.1.30 (Xray, Penetrates Everything.) 0a8470c (go1.23.5 linux/amd64)
@@ -31,6 +32,10 @@
 </details>
 
 ## Change Log
+
+> 2026-10-09
+
+- xray bump to 26.9.30
 
 > 2026-03-30
 
@@ -134,7 +139,7 @@
   ```yaml
   services:
     v2ray:
-      image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray
+      image: ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray
       network_mode: host
       environment:
         - VLESS_PORT=443
@@ -205,10 +210,10 @@
 
   ```bash
   # Auto-detect VPS IP, scan /24 subnet (requires --network host)
-  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray scan-sni
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray scan-sni
 
   # Scan specific subnet
-  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray scan-sni -addr 1.2.3.0/24
+  docker run --rm --network host ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray scan-sni -addr 1.2.3.0/24
 
   # Or exec into running container (manual subnet required)
   docker exec <container> scan-sni -addr 1.2.3.0/24
@@ -220,13 +225,13 @@
 
   ```bash
   # 生成 VLESS Encryption 密钥对 (ML-KEM-768 Post-Quantum)
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray vlessenc
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray xray vlessenc
 
   # 生成 Reality X25519 密钥对
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray x25519
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray xray x25519
 
   # 从私钥推导公钥 (v26: Password 字段即公钥)
-  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.1.0-xray xray x25519 -i "<private_key>"
+  docker run --rm ghcr.io/dogbutcat/docker-sshd-shadowsocks:7.2.0-xray xray x25519 -i "<private_key>"
   ```
 
 ### Mihomo 客户端配置示例

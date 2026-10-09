@@ -13,6 +13,8 @@
 
 # 0 0 * * * /usr/local/bin/install-dat-release > /dev/null 2>&1
 
+set -euo pipefail
+
 # You can modify it to /usr/local/lib/xray/
 XRAY="/usr/bin/xray/"
 # DOWNLOAD_LINK_GEOIP="https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
@@ -22,16 +24,18 @@ DOWNLOAD_LINK_GEOSITE="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/
 
 download_geoip() {
     echo "Starting Download GEOIP: ${DOWNLOAD_LINK_GEOIP}"
-    if ! curl -L -H 'Cache-Control: no-cache' -o "${XRAY}geoip.dat.new" "$DOWNLOAD_LINK_GEOIP"; then
+    if ! curl --fail --location --retry 3 --retry-delay 1 --retry-max-time 120 --connect-timeout 10 --max-time 60 \
+        -H 'Cache-Control: no-cache' -o "${XRAY}geoip.dat.new" "$DOWNLOAD_LINK_GEOIP"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
     fi
-    if ! curl -L -H 'Cache-Control: no-cache' -o "${XRAY}geoip.dat.sha256sum.new" "$DOWNLOAD_LINK_GEOIP.sha256sum"; then
+    if ! curl --fail --location --retry 3 --retry-delay 1 --retry-max-time 120 --connect-timeout 10 --max-time 60 \
+        -H 'Cache-Control: no-cache' -o "${XRAY}geoip.dat.sha256sum.new" "$DOWNLOAD_LINK_GEOIP.sha256sum"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
     fi
-    SUM="$(sha256sum ${XRAY}geoip.dat.new | sed 's/ .*//')"
-    CHECKSUM="$(sed 's/ .*//' ${XRAY}geoip.dat.sha256sum.new)"
+    SUM="$(sha256sum "${XRAY}geoip.dat.new" | sed 's/ .*//')"
+    CHECKSUM="$(sed 's/ .*//' "${XRAY}geoip.dat.sha256sum.new")"
     if [[ "$SUM" != "$CHECKSUM" ]]; then
         echo 'error: Check failed! Please check your network or try again.'
         exit 1
@@ -40,16 +44,18 @@ download_geoip() {
 
 download_geosite() {
     echo "Starting Download GEOSITE: ${DOWNLOAD_LINK_GEOSITE}"
-    if ! curl -L -H 'Cache-Control: no-cache' -o "${XRAY}geosite.dat.new" "$DOWNLOAD_LINK_GEOSITE"; then
+    if ! curl --fail --location --retry 3 --retry-delay 1 --retry-max-time 120 --connect-timeout 10 --max-time 60 \
+        -H 'Cache-Control: no-cache' -o "${XRAY}geosite.dat.new" "$DOWNLOAD_LINK_GEOSITE"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
     fi
-    if ! curl -L -H 'Cache-Control: no-cache' -o "${XRAY}geosite.dat.sha256sum.new" "$DOWNLOAD_LINK_GEOSITE.sha256sum"; then
+    if ! curl --fail --location --retry 3 --retry-delay 1 --retry-max-time 120 --connect-timeout 10 --max-time 60 \
+        -H 'Cache-Control: no-cache' -o "${XRAY}geosite.dat.sha256sum.new" "$DOWNLOAD_LINK_GEOSITE.sha256sum"; then
         echo 'error: Download failed! Please check your network or try again.'
         exit 1
     fi
-    SUM="$(sha256sum ${XRAY}geosite.dat.new | sed 's/ .*//')"
-    CHECKSUM="$(sed 's/ .*//' ${XRAY}geosite.dat.sha256sum.new)"
+    SUM="$(sha256sum "${XRAY}geosite.dat.new" | sed 's/ .*//')"
+    CHECKSUM="$(sed 's/ .*//' "${XRAY}geosite.dat.sha256sum.new")"
     if [[ "$SUM" != "$CHECKSUM" ]]; then
         echo 'error: Check failed! Please check your network or try again.'
         exit 1
@@ -65,6 +71,7 @@ rename_new() {
 }
 
 main() {
+    mkdir -p "$XRAY"
     download_geoip
     download_geosite
     rename_new
